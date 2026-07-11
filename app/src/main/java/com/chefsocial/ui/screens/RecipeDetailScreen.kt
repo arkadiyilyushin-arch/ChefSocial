@@ -13,7 +13,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -37,7 +40,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.chefsocial.ui.components.ChefAvatar
 import com.chefsocial.ui.components.RecipeImage
+import androidx.compose.ui.platform.LocalContext
+import com.chefsocial.ui.localization.LocalAppStrings
 import com.chefsocial.ui.viewmodel.ChefViewModel
+import com.chefsocial.util.shareRecipe
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -50,6 +56,8 @@ fun RecipeDetailScreen(
     onBack: () -> Unit,
     onAuthorClick: (Long) -> Unit,
 ) {
+    val strings = LocalAppStrings.current
+    val context = LocalContext.current
     val currentUser by viewModel.currentUser.collectAsState()
     val recipe by viewModel.observeRecipe(recipeId).collectAsState()
     val comments by viewModel.observeComments(recipeId).collectAsState()
@@ -58,19 +66,37 @@ fun RecipeDetailScreen(
     val interactions by viewModel
         .observeRecipeInteractions(recipeId, currentUser?.id ?: 0L)
         .collectAsState()
+    val isBookmarked by viewModel
+        .observeBookmark(recipeId, currentUser?.id ?: 0L)
+        .collectAsState()
 
     var commentText by rememberSaveable { mutableStateOf("") }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Рецепт") },
+                title = { Text(strings.recipeDetail) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.back)
                     }
                 },
                 actions = {
+                    IconButton(onClick = { shareRecipe(context, item, strings) }) {
+                        Icon(Icons.Default.Share, contentDescription = strings.share)
+                    }
+                    currentUser?.let { user ->
+                        IconButton(
+                            onClick = {
+                                viewModel.toggleBookmark(user.id, recipeId, isBookmarked)
+                            },
+                        ) {
+                            Icon(
+                                imageVector = if (isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                contentDescription = if (isBookmarked) strings.bookmarked else strings.bookmark,
+                            )
+                        }
+                    }
                     IconButton(
                         onClick = {
                             currentUser?.let { user ->
@@ -79,12 +105,8 @@ fun RecipeDetailScreen(
                         },
                     ) {
                         Icon(
-                            imageVector = if (interactions.isLiked) {
-                                Icons.Filled.Favorite
-                            } else {
-                                Icons.Outlined.FavoriteBorder
-                            },
-                            contentDescription = "Нравится",
+                            imageVector = if (interactions.isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = strings.like,
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     }
@@ -155,7 +177,7 @@ fun RecipeDetailScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Text("Ингредиенты", style = MaterialTheme.typography.titleLarge)
+                Text(strings.ingredientsTitle, style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 item.recipe.ingredients.lines().filter { it.isNotBlank() }.forEach { line ->
                     Text(
@@ -167,7 +189,7 @@ fun RecipeDetailScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Text("Приготовление", style = MaterialTheme.typography.titleLarge)
+                Text(strings.stepsTitle, style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = item.recipe.steps,
@@ -180,7 +202,7 @@ fun RecipeDetailScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Комментарии (${comments.size})",
+                    text = "${strings.comments} (${comments.size})",
                     style = MaterialTheme.typography.titleLarge,
                 )
                 Spacer(modifier = Modifier.height(12.dp))
@@ -227,7 +249,7 @@ fun RecipeDetailScreen(
                         value = commentText,
                         onValueChange = { commentText = it },
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text("Написать комментарий…") },
+                        placeholder = { Text(strings.writeComment) },
                         singleLine = true,
                     )
                     IconButton(

@@ -29,6 +29,7 @@ data class RecipeEntity(
     val cookTimeMinutes: Int,
     val servings: Int,
     val difficulty: String,
+    val category: String = "home",
     val imageUrl: String,
     val createdAt: Long = System.currentTimeMillis(),
 )

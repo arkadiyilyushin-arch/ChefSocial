@@ -21,3 +21,10 @@ data class CommentWithAuthor(
     @Relation(parentColumn = "authorId", entityColumn = "id")
     val author: ChefEntity,
 )
+
+data class LeaderboardEntry(
+    @Embedded val chef: ChefEntity,
+    val followerCount: Int,
+    val totalLikes: Int,
+    val recipeCount: Int,
+)

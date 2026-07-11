@@ -54,7 +54,31 @@ gh release download --repo arkadiyilyushin-arch/ChefSocial --pattern "*.apk"
 - **Эмулятор**: URL по умолчанию `http://10.0.2.2:8080/`
 - **Реальное устройство**: укажите `http://<IP-компьютера>:8080/` в профиле
 
+### API токен (рекомендуется)
+
+Для защиты sync/upload endpoint задайте переменную окружения:
+
+```bash
+export CHEFSOCIAL_API_TOKEN="your-secret-token"
+./gradlew :server:run
+```
+
+Тогда клиент должен отправлять заголовок `X-API-Key`.
+
 Нажмите кнопку синхронизации (↻) в ленте или в профиле.
+
+## Release-подпись APK
+
+Release APK подписывается только если заданы свойства Gradle:
+
+```properties
+RELEASE_STORE_FILE=/absolute/path/to/keystore.jks
+RELEASE_STORE_PASSWORD=*****
+RELEASE_KEY_ALIAS=*****
+RELEASE_KEY_PASSWORD=*****
+```
+
+Без этих параметров release собирается неподписанным (для тестовых/внутренних сборок).
 
 ## Установка
 

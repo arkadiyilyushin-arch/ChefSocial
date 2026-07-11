@@ -4,6 +4,7 @@ import android.Manifest
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,12 +43,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.chefsocial.model.RecipeCategory
 import com.chefsocial.ui.components.RecipeImage
+import com.chefsocial.ui.localization.LocalAppStrings
 import com.chefsocial.ui.viewmodel.ChefViewModel
 import com.chefsocial.util.createCameraPhotoUri
 import com.chefsocial.util.persistRecipePhoto
 
-private val difficulties = listOf("Легко", "Средне", "Сложно")
 private const val DEFAULT_IMAGE =
     "https://images.unsplash.com/photo-1495521823127-1a6742722f6d?w=800"
 
@@ -58,6 +60,7 @@ fun CreateRecipeScreen(
     onBack: () -> Unit,
     onPublished: () -> Unit,
 ) {
+    val strings = LocalAppStrings.current
     val context = LocalContext.current
     val currentUser by viewModel.currentUser.collectAsState()
 
@@ -67,7 +70,8 @@ fun CreateRecipeScreen(
     var steps by rememberSaveable { mutableStateOf("") }
     var cookTime by rememberSaveable { mutableStateOf("") }
     var servings by rememberSaveable { mutableIntStateOf(4) }
-    var difficulty by rememberSaveable { mutableStateOf("Средне") }
+    var difficulty by rememberSaveable { mutableStateOf(strings.medium) }
+    var category by rememberSaveable { mutableStateOf(RecipeCategory.HOME.id) }
     var imageUrl by rememberSaveable { mutableStateOf(DEFAULT_IMAGE) }
     var cameraUri by rememberSaveable { mutableStateOf<Uri?>(null) }
 
@@ -107,10 +111,10 @@ fun CreateRecipeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Новый рецепт") },
+                title = { Text(strings.newRecipe) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.back)
                     }
                 },
             )
@@ -124,11 +128,7 @@ fun CreateRecipeScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = "Поделитесь рецептом с сообществом поваров",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Text(strings.newRecipeHint, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             RecipeImage(
                 model = imageUrl,
@@ -142,34 +142,34 @@ fun CreateRecipeScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { galleryLauncher.launch("image/*") }) {
                     Icon(Icons.Default.PhotoLibrary, contentDescription = null)
-                    Text("Галерея", modifier = Modifier.padding(start = 8.dp))
+                    Text(strings.gallery, modifier = Modifier.padding(start = 8.dp))
                 }
                 OutlinedButton(
                     onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) },
                 ) {
                     Icon(Icons.Default.CameraAlt, contentDescription = null)
-                    Text("Камера", modifier = Modifier.padding(start = 8.dp))
+                    Text(strings.camera, modifier = Modifier.padding(start = 8.dp))
                 }
             }
 
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Название") },
+                label = { Text(strings.title) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Описание") },
+                label = { Text(strings.description) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2,
             )
             OutlinedTextField(
                 value = ingredients,
                 onValueChange = { ingredients = it },
-                label = { Text("Ингредиенты") },
+                label = { Text(strings.ingredients) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 4,
                 placeholder = { Text("Каждый ингредиент с новой строки") },
@@ -177,14 +177,14 @@ fun CreateRecipeScreen(
             OutlinedTextField(
                 value = steps,
                 onValueChange = { steps = it },
-                label = { Text("Шаги приготовления") },
+                label = { Text(strings.steps) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 4,
             )
             OutlinedTextField(
                 value = cookTime,
                 onValueChange = { cookTime = it.filter { ch -> ch.isDigit() } },
-                label = { Text("Время (мин)") },
+                label = { Text(strings.cookTime) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
@@ -194,7 +194,7 @@ fun CreateRecipeScreen(
                 onValueChange = { value ->
                     servings = value.filter { ch -> ch.isDigit() }.toIntOrNull() ?: servings
                 },
-                label = { Text("Порций") },
+                label = { Text(strings.servings) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
@@ -202,18 +202,29 @@ fun CreateRecipeScreen(
             OutlinedTextField(
                 value = imageUrl,
                 onValueChange = { imageUrl = it },
-                label = { Text("Фото (URL или локальный файл)") },
+                label = { Text(strings.photoUrl) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
 
-            Text("Сложность", style = MaterialTheme.typography.labelLarge)
+            Text(strings.difficulty, style = MaterialTheme.typography.labelLarge)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                difficulties.forEach { level ->
+                listOf(strings.easy, strings.medium, strings.hard).forEach { level ->
                     FilterChip(
                         selected = difficulty == level,
                         onClick = { difficulty = level },
                         label = { Text(level) },
+                    )
+                }
+            }
+
+            Text(strings.category, style = MaterialTheme.typography.labelLarge)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                RecipeCategory.entries.filter { it != RecipeCategory.ALL }.forEach { cat ->
+                    FilterChip(
+                        selected = category == cat.id,
+                        onClick = { category = cat.id },
+                        label = { Text(strings.categoryLabel(cat)) },
                     )
                 }
             }
@@ -232,6 +243,7 @@ fun CreateRecipeScreen(
                         cookTimeMinutes = cookTime.toInt(),
                         servings = servings,
                         difficulty = difficulty,
+                        category = category,
                         imageUrl = imageUrl,
                         onSuccess = onPublished,
                     )
@@ -239,7 +251,7 @@ fun CreateRecipeScreen(
                 enabled = canPublish,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Опубликовать рецепт")
+                Text(strings.publish)
             }
         }
     }

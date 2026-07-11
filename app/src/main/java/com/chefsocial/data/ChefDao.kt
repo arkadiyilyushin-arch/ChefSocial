@@ -41,6 +41,22 @@ interface ChefDao {
     @Query("SELECT COUNT(*) FROM chefs")
     suspend fun count(): Int
 
+    @Query(
+        """
+        SELECT chefs.*,
+            (SELECT COUNT(*) FROM follows WHERE followingId = chefs.id) AS followerCount,
+            (SELECT COUNT(*) FROM likes
+                INNER JOIN recipes ON likes.recipeId = recipes.id
+                WHERE recipes.authorId = chefs.id) AS totalLikes,
+            (SELECT COUNT(*) FROM recipes WHERE authorId = chefs.id) AS recipeCount
+        FROM chefs
+        WHERE chefs.isCurrentUser = 0
+        ORDER BY totalLikes DESC, followerCount DESC, recipeCount DESC
+        LIMIT :limit
+        """,
+    )
+    fun observeLeaderboard(limit: Int = 20): Flow<List<LeaderboardEntry>>
+
     @Query("UPDATE chefs SET name = :name, bio = :bio, specialty = :specialty WHERE id = :id")
     suspend fun updateProfile(id: Long, name: String, bio: String, specialty: String)
 }

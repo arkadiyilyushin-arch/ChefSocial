@@ -74,6 +74,7 @@ object DatabaseSeeder {
                 cookTimeMinutes = 90,
                 servings = 10,
                 difficulty = "Средне",
+                category = "baking",
                 imageUrl = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800",
             ),
             RecipeEntity(
@@ -85,6 +86,7 @@ object DatabaseSeeder {
                 cookTimeMinutes = 25,
                 servings = 4,
                 difficulty = "Легко",
+                category = "italian",
                 imageUrl = "https://images.unsplash.com/photo-1621996346565-e3dbc646d45a?w=800",
             ),
             RecipeEntity(
@@ -96,6 +98,7 @@ object DatabaseSeeder {
                 cookTimeMinutes = 20,
                 servings = 2,
                 difficulty = "Легко",
+                category = "healthy",
                 imageUrl = "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800",
             ),
             RecipeEntity(
@@ -107,6 +110,7 @@ object DatabaseSeeder {
                 cookTimeMinutes = 35,
                 servings = 2,
                 difficulty = "Средне",
+                category = "grill",
                 imageUrl = "https://images.unsplash.com/photo-1546833990-b9f581a1996d?w=800",
             ),
             RecipeEntity(
@@ -118,6 +122,7 @@ object DatabaseSeeder {
                 cookTimeMinutes = 180,
                 servings = 12,
                 difficulty = "Сложно",
+                category = "baking",
                 imageUrl = "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800",
             ),
             RecipeEntity(
@@ -129,6 +134,7 @@ object DatabaseSeeder {
                 cookTimeMinutes = 40,
                 servings = 4,
                 difficulty = "Средне",
+                category = "italian",
                 imageUrl = "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=800",
             ),
         )

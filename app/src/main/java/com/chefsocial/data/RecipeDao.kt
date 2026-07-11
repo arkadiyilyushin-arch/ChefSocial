@@ -14,6 +14,16 @@ interface RecipeDao {
     fun observeFeed(): Flow<List<RecipeWithAuthor>>
 
     @Transaction
+    @Query(
+        """
+        SELECT * FROM recipes
+        WHERE (:category = 'all' OR category = :category)
+        ORDER BY createdAt DESC
+        """,
+    )
+    fun observeFeedByCategory(category: String): Flow<List<RecipeWithAuthor>>
+
+    @Transaction
     @Query("SELECT * FROM recipes WHERE authorId = :authorId ORDER BY createdAt DESC")
     fun observeByAuthor(authorId: Long): Flow<List<RecipeWithAuthor>>
 
@@ -41,8 +51,9 @@ interface RecipeDao {
     @Query("SELECT * FROM recipes WHERE uuid = :uuid LIMIT 1")
     suspend fun getByUuid(uuid: String): RecipeEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(recipes: List<RecipeEntity>)
+    @Transaction
+    @Query("SELECT * FROM recipes WHERE id = :id")
+    suspend fun getWithAuthorById(id: Long): RecipeWithAuthor?
 
     @Query("SELECT COUNT(*) FROM recipes WHERE authorId = :authorId")
     fun observeRecipeCount(authorId: Long): Flow<Int>

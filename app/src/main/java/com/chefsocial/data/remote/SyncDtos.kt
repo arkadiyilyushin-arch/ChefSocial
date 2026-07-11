@@ -9,6 +9,7 @@ data class SyncPayloadDto(
     val comments: List<CommentDto> = emptyList(),
     val likes: List<LikeDto> = emptyList(),
     val follows: List<FollowDto> = emptyList(),
+    val bookmarks: List<BookmarkDto> = emptyList(),
 )
 
 @Serializable
@@ -33,9 +34,20 @@ data class RecipeDto(
     val cookTimeMinutes: Int,
     val servings: Int,
     val difficulty: String,
+    val category: String = "home",
     val imageUrl: String,
     val createdAt: Long,
 )
+
+@Serializable
+data class BookmarkDto(
+    val chefUuid: String,
+    val recipeUuid: String,
+    val savedAt: Long,
+)
+
+@Serializable
+data class UploadResponseDto(val url: String)
 
 @Serializable
 data class CommentDto(
