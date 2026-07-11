@@ -1,6 +1,8 @@
 package com.chefsocial.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -59,18 +61,29 @@ fun RecipeDetailScreen(
     val strings = LocalAppStrings.current
     val context = LocalContext.current
     val currentUser by viewModel.currentUser.collectAsState()
+    val currentUserId = currentUser?.id ?: 0L
     val recipe by viewModel.observeRecipe(recipeId).collectAsState()
     val comments by viewModel.observeComments(recipeId).collectAsState()
-    val item = recipe ?: return
+    val item = recipe
 
     val interactions by viewModel
-        .observeRecipeInteractions(recipeId, currentUser?.id ?: 0L)
+        .observeRecipeInteractions(recipeId, currentUserId)
         .collectAsState()
     val isBookmarked by viewModel
-        .observeBookmark(recipeId, currentUser?.id ?: 0L)
+        .observeBookmark(recipeId, currentUserId)
         .collectAsState()
 
     var commentText by rememberSaveable { mutableStateOf("") }
+
+    if (item == null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
     Scaffold(
         topBar = {

@@ -5,6 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.chefsocial.data.AppDatabase
 import com.chefsocial.data.ChefRepository
+import com.chefsocial.data.ChefWithStats
+import com.chefsocial.data.CommentWithAuthor
 import com.chefsocial.data.RecipeWithAuthor
 import com.chefsocial.data.remote.SyncRepository
 import com.chefsocial.model.RecipeCategory
@@ -31,6 +33,15 @@ import kotlinx.coroutines.launch
 
 class ChefViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = ChefRepository(AppDatabase.get(application))
+
+    private val recipeStates = mutableMapOf<Long, StateFlow<RecipeWithAuthor?>>()
+    private val commentStates = mutableMapOf<Long, StateFlow<List<CommentWithAuthor>>>()
+    private val chefStatsStates = mutableMapOf<Long, StateFlow<ChefWithStats?>>()
+    private val recipesByAuthorStates = mutableMapOf<Long, StateFlow<List<RecipeWithAuthor>>>()
+    private val savedRecipesStates = mutableMapOf<Long, StateFlow<List<RecipeWithAuthor>>>()
+    private val interactionStates = mutableMapOf<String, StateFlow<RecipeInteractions>>()
+    private val bookmarkStates = mutableMapOf<String, StateFlow<Boolean>>()
+    private val followStates = mutableMapOf<String, StateFlow<Boolean>>()
 
     private val _language = MutableStateFlow(getAppLanguage(application))
     val language: StateFlow<AppLanguage> = _language.asStateFlow()
@@ -80,35 +91,67 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
         else repository.searchChefs(query)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun observeRecipe(id: Long) = repository.observeRecipe(id)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    fun observeRecipe(id: Long): StateFlow<RecipeWithAuthor?> =
+        recipeStates.getOrPut(id) {
+            repository.observeRecipe(id)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        }
 
-    fun observeComments(recipeId: Long) = repository.observeComments(recipeId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    fun observeComments(recipeId: Long): StateFlow<List<CommentWithAuthor>> =
+        commentStates.getOrPut(recipeId) {
+            repository.observeComments(recipeId)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        }
 
-    fun observeChefStats(id: Long) = repository.observeChefStats(id)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    fun observeChefStats(id: Long): StateFlow<ChefWithStats?> =
+        chefStatsStates.getOrPut(id) {
+            repository.observeChefStats(id)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        }
 
-    fun observeRecipesByAuthor(authorId: Long) = repository.observeRecipesByAuthor(authorId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    fun observeRecipesByAuthor(authorId: Long): StateFlow<List<RecipeWithAuthor>> =
+        recipesByAuthorStates.getOrPut(authorId) {
+            repository.observeRecipesByAuthor(authorId)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        }
 
-    fun observeSavedRecipes(chefId: Long) = repository.observeSavedRecipes(chefId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    fun observeSavedRecipes(chefId: Long): StateFlow<List<RecipeWithAuthor>> =
+        savedRecipesStates.getOrPut(chefId) {
+            repository.observeSavedRecipes(chefId)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        }
 
-    fun observeRecipeInteractions(recipeId: Long, currentUserId: Long) = combine(
-        repository.observeLikeCount(recipeId),
-        repository.observeIsLiked(recipeId, currentUserId),
-        repository.observeCommentCount(recipeId),
-    ) { count, liked, comments -> RecipeInteractions(count, liked, comments) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), RecipeInteractions())
+    fun observeRecipeInteractions(
+        recipeId: Long,
+        currentUserId: Long,
+    ): StateFlow<RecipeInteractions> {
+        val key = "$recipeId:$currentUserId"
+        return interactionStates.getOrPut(key) {
+            combine(
+                repository.observeLikeCount(recipeId),
+                repository.observeIsLiked(recipeId, currentUserId),
+                repository.observeCommentCount(recipeId),
+            ) { count, liked, comments ->
+                RecipeInteractions(count, liked, comments)
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), RecipeInteractions())
+        }
+    }
 
-    fun observeBookmark(recipeId: Long, chefId: Long) =
-        repository.observeIsBookmarked(chefId, recipeId)
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    fun observeBookmark(recipeId: Long, chefId: Long): StateFlow<Boolean> {
+        val key = "$recipeId:$chefId"
+        return bookmarkStates.getOrPut(key) {
+            repository.observeIsBookmarked(chefId, recipeId)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+        }
+    }
 
-    fun observeFollowState(followerId: Long, followingId: Long) =
-        repository.observeIsFollowing(followerId, followingId)
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    fun observeFollowState(followerId: Long, followingId: Long): StateFlow<Boolean> {
+        val key = "$followerId:$followingId"
+        return followStates.getOrPut(key) {
+            repository.observeIsFollowing(followerId, followingId)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+        }
+    }
 
     fun setFeedCategory(category: RecipeCategory) { _feedCategory.value = category }
     fun setSearchQuery(query: String) { _searchQuery.value = query }
