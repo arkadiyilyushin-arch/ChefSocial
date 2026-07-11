@@ -21,7 +21,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ForumThreadEntity::class,
         ForumPostEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -48,7 +48,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "chef_social.db",
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build()
                     .also { instance = it }
             }
@@ -68,124 +68,114 @@ abstract class AppDatabase : RoomDatabase() {
 
         val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                ensureNewsTable(db)
-                ensureConversationTable(db)
-                ensureMessageTable(db)
-                ensureForumThreadTable(db)
-                ensureForumPostTable(db)
+                recreateSocialTables(db)
             }
         }
 
-        private fun ensureNewsTable(db: SupportSQLiteDatabase) {
-            if (!db.hasTable("news_posts")) {
-                db.execSQL(
-                    """
-                    CREATE TABLE IF NOT EXISTS news_posts (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        uuid TEXT NOT NULL,
-                        title TEXT NOT NULL,
-                        body TEXT NOT NULL,
-                        summary TEXT NOT NULL DEFAULT '',
-                        imageUrl TEXT NOT NULL DEFAULT '',
-                        authorName TEXT NOT NULL DEFAULT 'Admin',
-                        isPinned INTEGER NOT NULL DEFAULT 0,
-                        publishedAt INTEGER NOT NULL DEFAULT 0
-                    )
-                    """.trimIndent(),
-                )
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                recreateSocialTables(db)
             }
-            db.execSQL("CREATE INDEX IF NOT EXISTS index_news_posts_uuid ON news_posts(uuid)")
+        }
+
+        private fun recreateSocialTables(db: SupportSQLiteDatabase) {
+            db.execSQL("DROP TABLE IF EXISTS forum_posts")
+            db.execSQL("DROP TABLE IF EXISTS messages")
+            db.execSQL("DROP TABLE IF EXISTS forum_threads")
+            db.execSQL("DROP TABLE IF EXISTS conversations")
+            db.execSQL("DROP TABLE IF EXISTS news_posts")
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS news_posts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    uuid TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    body TEXT NOT NULL,
+                    summary TEXT NOT NULL,
+                    imageUrl TEXT NOT NULL,
+                    authorName TEXT NOT NULL,
+                    isPinned INTEGER NOT NULL,
+                    publishedAt INTEGER NOT NULL
+                )
+                """.trimIndent(),
+            )
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_news_posts_uuid ON news_posts(uuid)")
             db.execSQL("CREATE INDEX IF NOT EXISTS index_news_posts_publishedAt ON news_posts(publishedAt)")
-        }
 
-        private fun ensureConversationTable(db: SupportSQLiteDatabase) {
-            if (!db.hasTable("conversations")) {
-                db.execSQL(
-                    """
-                    CREATE TABLE IF NOT EXISTS conversations (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        uuid TEXT NOT NULL,
-                        participant1Id INTEGER NOT NULL,
-                        participant2Id INTEGER NOT NULL,
-                        lastMessageAt INTEGER NOT NULL DEFAULT 0,
-                        lastMessagePreview TEXT NOT NULL DEFAULT '',
-                        FOREIGN KEY(participant1Id) REFERENCES chefs(id) ON DELETE CASCADE,
-                        FOREIGN KEY(participant2Id) REFERENCES chefs(id) ON DELETE CASCADE
-                    )
-                    """.trimIndent(),
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS conversations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    uuid TEXT NOT NULL,
+                    participant1Id INTEGER NOT NULL,
+                    participant2Id INTEGER NOT NULL,
+                    lastMessageAt INTEGER NOT NULL,
+                    lastMessagePreview TEXT NOT NULL,
+                    FOREIGN KEY(participant1Id) REFERENCES chefs(id) ON DELETE CASCADE,
+                    FOREIGN KEY(participant2Id) REFERENCES chefs(id) ON DELETE CASCADE
                 )
-            }
+                """.trimIndent(),
+            )
             db.execSQL("CREATE INDEX IF NOT EXISTS index_conversations_participant1Id ON conversations(participant1Id)")
             db.execSQL("CREATE INDEX IF NOT EXISTS index_conversations_participant2Id ON conversations(participant2Id)")
-            db.execSQL("CREATE INDEX IF NOT EXISTS index_conversations_uuid ON conversations(uuid)")
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_conversations_uuid ON conversations(uuid)")
             db.execSQL("CREATE INDEX IF NOT EXISTS index_conversations_lastMessageAt ON conversations(lastMessageAt)")
-        }
 
-        private fun ensureMessageTable(db: SupportSQLiteDatabase) {
-            if (!db.hasTable("messages")) {
-                db.execSQL(
-                    """
-                    CREATE TABLE IF NOT EXISTS messages (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        uuid TEXT NOT NULL,
-                        conversationId INTEGER NOT NULL,
-                        senderId INTEGER NOT NULL,
-                        text TEXT NOT NULL,
-                        createdAt INTEGER NOT NULL DEFAULT 0,
-                        isRead INTEGER NOT NULL DEFAULT 0,
-                        FOREIGN KEY(conversationId) REFERENCES conversations(id) ON DELETE CASCADE,
-                        FOREIGN KEY(senderId) REFERENCES chefs(id) ON DELETE CASCADE
-                    )
-                    """.trimIndent(),
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS messages (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    uuid TEXT NOT NULL,
+                    conversationId INTEGER NOT NULL,
+                    senderId INTEGER NOT NULL,
+                    text TEXT NOT NULL,
+                    createdAt INTEGER NOT NULL,
+                    isRead INTEGER NOT NULL,
+                    FOREIGN KEY(conversationId) REFERENCES conversations(id) ON DELETE CASCADE,
+                    FOREIGN KEY(senderId) REFERENCES chefs(id) ON DELETE CASCADE
                 )
-            }
+                """.trimIndent(),
+            )
             db.execSQL("CREATE INDEX IF NOT EXISTS index_messages_conversationId ON messages(conversationId)")
             db.execSQL("CREATE INDEX IF NOT EXISTS index_messages_senderId ON messages(senderId)")
-            db.execSQL("CREATE INDEX IF NOT EXISTS index_messages_uuid ON messages(uuid)")
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_messages_uuid ON messages(uuid)")
             db.execSQL("CREATE INDEX IF NOT EXISTS index_messages_createdAt ON messages(createdAt)")
-        }
 
-        private fun ensureForumThreadTable(db: SupportSQLiteDatabase) {
-            if (!db.hasTable("forum_threads")) {
-                db.execSQL(
-                    """
-                    CREATE TABLE IF NOT EXISTS forum_threads (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        uuid TEXT NOT NULL,
-                        title TEXT NOT NULL,
-                        body TEXT NOT NULL,
-                        authorId INTEGER NOT NULL,
-                        createdAt INTEGER NOT NULL DEFAULT 0,
-                        FOREIGN KEY(authorId) REFERENCES chefs(id) ON DELETE CASCADE
-                    )
-                    """.trimIndent(),
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS forum_threads (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    uuid TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    body TEXT NOT NULL,
+                    authorId INTEGER NOT NULL,
+                    createdAt INTEGER NOT NULL,
+                    FOREIGN KEY(authorId) REFERENCES chefs(id) ON DELETE CASCADE
                 )
-            }
+                """.trimIndent(),
+            )
             db.execSQL("CREATE INDEX IF NOT EXISTS index_forum_threads_authorId ON forum_threads(authorId)")
-            db.execSQL("CREATE INDEX IF NOT EXISTS index_forum_threads_uuid ON forum_threads(uuid)")
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_forum_threads_uuid ON forum_threads(uuid)")
             db.execSQL("CREATE INDEX IF NOT EXISTS index_forum_threads_createdAt ON forum_threads(createdAt)")
-        }
 
-        private fun ensureForumPostTable(db: SupportSQLiteDatabase) {
-            if (!db.hasTable("forum_posts")) {
-                db.execSQL(
-                    """
-                    CREATE TABLE IF NOT EXISTS forum_posts (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        uuid TEXT NOT NULL,
-                        threadId INTEGER NOT NULL,
-                        authorId INTEGER NOT NULL,
-                        text TEXT NOT NULL,
-                        createdAt INTEGER NOT NULL DEFAULT 0,
-                        FOREIGN KEY(threadId) REFERENCES forum_threads(id) ON DELETE CASCADE,
-                        FOREIGN KEY(authorId) REFERENCES chefs(id) ON DELETE CASCADE
-                    )
-                    """.trimIndent(),
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS forum_posts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    uuid TEXT NOT NULL,
+                    threadId INTEGER NOT NULL,
+                    authorId INTEGER NOT NULL,
+                    text TEXT NOT NULL,
+                    createdAt INTEGER NOT NULL,
+                    FOREIGN KEY(threadId) REFERENCES forum_threads(id) ON DELETE CASCADE,
+                    FOREIGN KEY(authorId) REFERENCES chefs(id) ON DELETE CASCADE
                 )
-            }
+                """.trimIndent(),
+            )
             db.execSQL("CREATE INDEX IF NOT EXISTS index_forum_posts_threadId ON forum_posts(threadId)")
             db.execSQL("CREATE INDEX IF NOT EXISTS index_forum_posts_authorId ON forum_posts(authorId)")
-            db.execSQL("CREATE INDEX IF NOT EXISTS index_forum_posts_uuid ON forum_posts(uuid)")
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_forum_posts_uuid ON forum_posts(uuid)")
             db.execSQL("CREATE INDEX IF NOT EXISTS index_forum_posts_createdAt ON forum_posts(createdAt)")
         }
 
