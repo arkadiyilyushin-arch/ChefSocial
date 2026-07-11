@@ -25,6 +25,7 @@ data class ChefDto(
     val bio: String,
     val specialty: String,
     val avatarEmoji: String,
+    val avatarUrl: String = "",
     val isCurrentUser: Boolean = false,
 )
 

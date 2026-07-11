@@ -21,7 +21,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ForumThreadEntity::class,
         ForumPostEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -48,7 +48,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "chef_social.db",
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .build()
                     .also { instance = it }
             }
@@ -75,6 +75,14 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 recreateSocialTables(db)
+            }
+        }
+
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                if (!db.hasColumn("chefs", "avatarUrl")) {
+                    db.execSQL("ALTER TABLE chefs ADD COLUMN avatarUrl TEXT NOT NULL DEFAULT ''")
+                }
             }
         }
 

@@ -57,14 +57,20 @@ class ChefRepository(private val db: AppDatabase) {
         recipeDao.observeRecipeCount(chefId),
         followDao.observeFollowerCount(chefId),
         followDao.observeFollowingCount(chefId),
-    ) { chef, recipes, followers, following ->
+        likeDao.observeTotalLikesReceived(chefId),
+    ) { chef, recipes, followers, following, totalLikes ->
         ChefWithStats(
             chef = chef ?: error("Chef not found"),
             recipeCount = recipes,
             followerCount = followers,
             followingCount = following,
+            totalLikes = totalLikes,
         )
     }
+
+    fun observeFollowers(chefId: Long): Flow<List<ChefEntity>> = chefDao.observeFollowers(chefId)
+
+    fun observeFollowing(chefId: Long): Flow<List<ChefEntity>> = chefDao.observeFollowing(chefId)
 
     fun observeLikeCount(recipeId: Long): Flow<Int> = likeDao.observeLikeCount(recipeId)
 
@@ -149,8 +155,23 @@ class ChefRepository(private val db: AppDatabase) {
         ),
     )
 
-    suspend fun updateProfile(id: Long, name: String, bio: String, specialty: String) {
-        chefDao.updateProfile(id, name.trim(), bio.trim(), specialty.trim())
+    suspend fun updateProfile(
+        id: Long,
+        name: String,
+        bio: String,
+        specialty: String,
+        avatarUrl: String = "",
+        avatarEmoji: String = "",
+    ) {
+        val chef = chefDao.getById(id) ?: return
+        chefDao.updateProfileFull(
+            id = id,
+            name = name.trim(),
+            bio = bio.trim(),
+            specialty = specialty.trim(),
+            avatarUrl = avatarUrl.trim().ifBlank { chef.avatarUrl },
+            avatarEmoji = avatarEmoji.ifBlank { chef.avatarEmoji },
+        )
     }
 
     suspend fun publishNews(

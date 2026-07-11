@@ -23,7 +23,11 @@ import com.chefsocial.ui.screens.MessageThreadScreen
 import com.chefsocial.ui.screens.NewsDetailScreen
 import com.chefsocial.ui.screens.NewsScreen
 import com.chefsocial.ui.screens.OnboardingScreen
+import com.chefsocial.ui.screens.FollowListScreen
+import com.chefsocial.ui.screens.FollowListType
+import com.chefsocial.ui.screens.ProfileEditScreen
 import com.chefsocial.ui.screens.ProfileScreen
+import com.chefsocial.ui.screens.ProfileSettingsScreen
 import com.chefsocial.ui.screens.RecipeDetailScreen
 import com.chefsocial.ui.screens.SavedScreen
 import com.chefsocial.ui.screens.SearchScreen
@@ -47,6 +51,10 @@ object Routes {
     const val MESSAGE_THREAD = "message_thread"
     const val FORUM_THREAD = "forum_thread"
     const val CREATE_FORUM_THREAD = "create_forum_thread"
+    const val PROFILE_EDIT = "profile_edit"
+    const val PROFILE_SETTINGS = "profile_settings"
+    const val PROFILE_FOLLOWERS = "profile_followers"
+    const val PROFILE_FOLLOWING = "profile_following"
 
     fun recipe(id: Long) = "$RECIPE/$id"
     fun chef(id: Long) = "$CHEF/$id"
@@ -157,13 +165,61 @@ fun AppNavigation(viewModel: ChefViewModel) {
             )
         }
         composable(Routes.PROFILE) {
+            val currentUser by viewModel.currentUser.collectAsState()
             ProfileScreen(
                 viewModel = viewModel,
                 currentRoute = Routes.PROFILE,
                 onSelectTab = selectTab,
                 onRecipeClick = { id -> navController.navigate(Routes.recipe(id)) },
-                onSaved = { navController.navigate(Routes.SAVED) },
+                onEditProfile = { navController.navigate(Routes.PROFILE_EDIT) },
+                onSettings = { navController.navigate(Routes.PROFILE_SETTINGS) },
                 onCreateRecipe = { navController.navigate(Routes.CREATE) },
+                onFollowers = {
+                    currentUser?.let { navController.navigate(Routes.PROFILE_FOLLOWERS) }
+                },
+                onFollowing = {
+                    currentUser?.let { navController.navigate(Routes.PROFILE_FOLLOWING) }
+                },
+            )
+        }
+        composable(Routes.PROFILE_EDIT) {
+            ProfileEditScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() },
+            )
+        }
+        composable(Routes.PROFILE_SETTINGS) {
+            ProfileSettingsScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onLogout = {
+                    navController.navigate(Routes.AUTH) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+            )
+        }
+        composable(Routes.PROFILE_FOLLOWERS) {
+            val currentUser by viewModel.currentUser.collectAsState()
+            val userId = currentUser?.id ?: return@composable
+            FollowListScreen(
+                viewModel = viewModel,
+                chefId = userId,
+                listType = FollowListType.Followers,
+                onBack = { navController.popBackStack() },
+                onChefClick = { id -> navController.navigate(Routes.chef(id)) },
+            )
+        }
+        composable(Routes.PROFILE_FOLLOWING) {
+            val currentUser by viewModel.currentUser.collectAsState()
+            val userId = currentUser?.id ?: return@composable
+            FollowListScreen(
+                viewModel = viewModel,
+                chefId = userId,
+                listType = FollowListType.Following,
+                onBack = { navController.popBackStack() },
+                onChefClick = { id -> navController.navigate(Routes.chef(id)) },
             )
         }
         composable(Routes.CREATE_NEWS) {

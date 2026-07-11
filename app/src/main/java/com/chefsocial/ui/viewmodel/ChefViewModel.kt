@@ -62,6 +62,8 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     private val forumThreadStates = mutableMapOf<Long, StateFlow<ForumThreadWithAuthor?>>()
     private val forumPostStates = mutableMapOf<Long, StateFlow<List<ForumPostWithAuthor>>>()
     private val conversationStates = mutableMapOf<Long, StateFlow<ConversationEntity?>>()
+    private val followersStates = mutableMapOf<Long, StateFlow<List<ChefEntity>>>()
+    private val followingStates = mutableMapOf<Long, StateFlow<List<ChefEntity>>>()
 
     private val _language = MutableStateFlow(getAppLanguage(application))
     val language: StateFlow<AppLanguage> = _language.asStateFlow()
@@ -92,6 +94,9 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _communicationTab = MutableStateFlow(0)
     val communicationTab: StateFlow<Int> = _communicationTab.asStateFlow()
+
+    private val _profileTab = MutableStateFlow(0)
+    val profileTab: StateFlow<Int> = _profileTab.asStateFlow()
 
     val isAdmin: Boolean = isAdminUser(application)
 
@@ -237,6 +242,19 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     fun setFeedCategory(category: RecipeCategory) { _feedCategory.value = category }
     fun setSearchQuery(query: String) { _searchQuery.value = query }
     fun setCommunicationTab(index: Int) { _communicationTab.value = index }
+    fun setProfileTab(index: Int) { _profileTab.value = index }
+
+    fun observeFollowers(chefId: Long): StateFlow<List<ChefEntity>> =
+        followersStates.getOrPut(chefId) {
+            repository.observeFollowers(chefId)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        }
+
+    fun observeFollowing(chefId: Long): StateFlow<List<ChefEntity>> =
+        followingStates.getOrPut(chefId) {
+            repository.observeFollowing(chefId)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        }
 
     fun setLanguage(language: AppLanguage) {
         setAppLanguage(getApplication(), language)
@@ -374,8 +392,36 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun updateProfile(id: Long, name: String, bio: String, specialty: String) {
-        viewModelScope.launch { repository.updateProfile(id, name, bio, specialty) }
+    fun updateProfile(
+        id: Long,
+        name: String,
+        bio: String,
+        specialty: String,
+        avatarUrl: String? = null,
+        avatarEmoji: String? = null,
+        onSuccess: () -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            var finalAvatarUrl = avatarUrl
+            if (!finalAvatarUrl.isNullOrBlank()) {
+                val syncRepo = SyncRepository(
+                    db = AppDatabase.get(getApplication()),
+                    baseUrl = _serverUrl.value,
+                    apiToken = _serverApiToken.value,
+                )
+                finalAvatarUrl = syncRepo.uploadPhotoIfLocal(getApplication(), finalAvatarUrl)
+                    .getOrDefault(finalAvatarUrl)
+            }
+            repository.updateProfile(
+                id = id,
+                name = name,
+                bio = bio,
+                specialty = specialty,
+                avatarUrl = finalAvatarUrl ?: "",
+                avatarEmoji = avatarEmoji ?: "",
+            )
+            onSuccess()
+        }
     }
 
     fun publishNews(

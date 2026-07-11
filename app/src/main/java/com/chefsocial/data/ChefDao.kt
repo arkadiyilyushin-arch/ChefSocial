@@ -59,4 +59,40 @@ interface ChefDao {
 
     @Query("UPDATE chefs SET name = :name, bio = :bio, specialty = :specialty WHERE id = :id")
     suspend fun updateProfile(id: Long, name: String, bio: String, specialty: String)
+
+    @Query(
+        """
+        UPDATE chefs
+        SET name = :name, bio = :bio, specialty = :specialty, avatarUrl = :avatarUrl, avatarEmoji = :avatarEmoji
+        WHERE id = :id
+        """,
+    )
+    suspend fun updateProfileFull(
+        id: Long,
+        name: String,
+        bio: String,
+        specialty: String,
+        avatarUrl: String,
+        avatarEmoji: String,
+    )
+
+    @Query(
+        """
+        SELECT chefs.* FROM chefs
+        INNER JOIN follows ON follows.followerId = chefs.id
+        WHERE follows.followingId = :chefId
+        ORDER BY chefs.name ASC
+        """,
+    )
+    fun observeFollowers(chefId: Long): Flow<List<ChefEntity>>
+
+    @Query(
+        """
+        SELECT chefs.* FROM chefs
+        INNER JOIN follows ON follows.followingId = chefs.id
+        WHERE follows.followerId = :chefId
+        ORDER BY chefs.name ASC
+        """,
+    )
+    fun observeFollowing(chefId: Long): Flow<List<ChefEntity>>
 }

@@ -131,6 +131,18 @@ data class AppStrings(
     val notificationNewComment: String,
     val notificationNewFollower: String,
     val uploadPhoto: String,
+    val settings: String,
+    val profileTabRecipes: String,
+    val profileTabSaved: String,
+    val totalLikes: String,
+    val editPhoto: String,
+    val logout: String,
+    val selectEmoji: String,
+    val followersTitle: String,
+    val followingTitle: String,
+    val username: String,
+    val noFollowers: String,
+    val noFollowing: String,
 ) {
     fun categoryLabel(category: RecipeCategory): String = when (category) {
         RecipeCategory.ALL -> allCategories
@@ -273,6 +285,18 @@ data class AppStrings(
             notificationNewComment = "Новый комментарий к рецепту",
             notificationNewFollower = "У вас новый подписчик",
             uploadPhoto = "Загрузка фото…",
+            settings = "Настройки",
+            profileTabRecipes = "Рецепты",
+            profileTabSaved = "Закладки",
+            totalLikes = "Лайки",
+            editPhoto = "Изменить фото",
+            logout = "Выйти",
+            selectEmoji = "Эмодзи аватара",
+            followersTitle = "Подписчики",
+            followingTitle = "Подписки",
+            username = "Имя пользователя",
+            noFollowers = "Пока нет подписчиков",
+            noFollowing = "Вы ни на кого не подписаны",
         )
 
         val English = AppStrings(
@@ -400,6 +424,18 @@ data class AppStrings(
             notificationNewComment = "New comment on recipe",
             notificationNewFollower = "You have a new follower",
             uploadPhoto = "Uploading photo…",
+            settings = "Settings",
+            profileTabRecipes = "Recipes",
+            profileTabSaved = "Saved",
+            totalLikes = "Likes",
+            editPhoto = "Change photo",
+            logout = "Log out",
+            selectEmoji = "Avatar emoji",
+            followersTitle = "Followers",
+            followingTitle = "Following",
+            username = "Username",
+            noFollowers = "No followers yet",
+            noFollowing = "Not following anyone yet",
         )
 
         fun forLanguage(language: AppLanguage): AppStrings =

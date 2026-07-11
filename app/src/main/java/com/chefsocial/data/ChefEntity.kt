@@ -17,5 +17,6 @@ data class ChefEntity(
     val bio: String,
     val specialty: String,
     val avatarEmoji: String,
+    val avatarUrl: String = "",
     val isCurrentUser: Boolean = false,
 )

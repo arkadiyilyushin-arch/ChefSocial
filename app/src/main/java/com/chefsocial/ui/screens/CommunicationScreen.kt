@@ -32,7 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.chefsocial.data.ConversationEntity
 import com.chefsocial.data.ForumThreadWithAuthor
-import com.chefsocial.ui.components.ChefAvatar
+import com.chefsocial.ui.components.ProfileAvatar
 import com.chefsocial.ui.components.ChefBottomBar
 import com.chefsocial.ui.localization.LocalAppStrings
 import com.chefsocial.ui.theme.CheflyCard
@@ -158,7 +158,7 @@ private fun ConversationCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ChefAvatar(emoji = otherChef?.avatarEmoji ?: "👤", size = 44)
+            ProfileAvatar(emoji = otherChef?.avatarEmoji ?: "👤", avatarUrl = otherChef?.avatarUrl.orEmpty(), size = 44)
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text = otherChef?.name ?: "…",

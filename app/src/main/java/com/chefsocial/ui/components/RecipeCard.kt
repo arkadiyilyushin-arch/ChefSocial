@@ -150,22 +150,3 @@ private fun MetaChip(text: String) {
         )
     }
 }
-
-@Composable
-fun ChefAvatar(
-    emoji: String,
-    size: Int = 48,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.size(size.dp),
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.primaryContainer,
-    ) {
-        Text(
-            text = emoji,
-            modifier = Modifier.padding((size / 6).dp),
-            style = MaterialTheme.typography.headlineMedium,
-        )
-    }
-}

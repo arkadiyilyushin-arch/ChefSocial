@@ -14,6 +14,7 @@ data class ChefWithStats(
     val recipeCount: Int,
     val followerCount: Int,
     val followingCount: Int,
+    val totalLikes: Int,
 )
 
 data class CommentWithAuthor(

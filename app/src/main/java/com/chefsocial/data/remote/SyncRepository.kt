@@ -205,6 +205,7 @@ class SyncRepository(
                         bio = dto.bio,
                         specialty = dto.specialty,
                         avatarEmoji = dto.avatarEmoji,
+                        avatarUrl = dto.avatarUrl,
                     ),
                 )
             }
@@ -327,6 +328,7 @@ class SyncRepository(
         bio = bio,
         specialty = specialty,
         avatarEmoji = avatarEmoji,
+        avatarUrl = avatarUrl,
         isCurrentUser = isCurrentUser,
     )
 
@@ -337,6 +339,7 @@ class SyncRepository(
         bio = bio,
         specialty = specialty,
         avatarEmoji = avatarEmoji,
+        avatarUrl = avatarUrl,
         isCurrentUser = isCurrentUser,
     )
 

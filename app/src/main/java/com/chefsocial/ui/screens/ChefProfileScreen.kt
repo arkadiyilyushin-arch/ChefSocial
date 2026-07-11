@@ -28,8 +28,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.chefsocial.ui.components.ChefAvatar
+import com.chefsocial.ui.components.ProfileAvatar
 import com.chefsocial.ui.components.RecipeCard
+import com.chefsocial.ui.localization.LocalAppStrings
 import com.chefsocial.ui.viewmodel.ChefViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,6 +41,7 @@ fun ChefProfileScreen(
     onBack: () -> Unit,
     onRecipeClick: (Long) -> Unit,
 ) {
+    val strings = LocalAppStrings.current
     val currentUser by viewModel.currentUser.collectAsState()
     val stats by viewModel.observeChefStats(chefId).collectAsState()
     val recipes by viewModel.observeRecipesByAuthor(chefId).collectAsState()
@@ -74,7 +76,11 @@ fun ChefProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    ChefAvatar(emoji = chef.avatarEmoji, size = 80)
+                    ProfileAvatar(
+                        emoji = chef.avatarEmoji,
+                        avatarUrl = chef.avatarUrl,
+                        size = 80,
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(text = chef.name, style = MaterialTheme.typography.headlineMedium)
                     Text(
@@ -100,9 +106,10 @@ fun ChefProfileScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                     ) {
-                        StatItem("Рецепты", stats?.recipeCount ?: 0)
-                        StatItem("Подписчики", stats?.followerCount ?: 0)
-                        StatItem("Подписки", stats?.followingCount ?: 0)
+                        StatItem(strings.recipesCount, stats?.recipeCount ?: 0)
+                        StatItem(strings.followers, stats?.followerCount ?: 0)
+                        StatItem(strings.following, stats?.followingCount ?: 0)
+                        StatItem(strings.totalLikes, stats?.totalLikes ?: 0)
                     }
 
                     if (!isOwnProfile) {

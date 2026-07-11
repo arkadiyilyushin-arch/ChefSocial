@@ -29,6 +29,15 @@ interface LikeDao {
     @Query("SELECT * FROM likes")
     suspend fun getAll(): List<LikeEntity>
 
+    @Query(
+        """
+        SELECT COUNT(*) FROM likes
+        INNER JOIN recipes ON likes.recipeId = recipes.id
+        WHERE recipes.authorId = :chefId
+        """,
+    )
+    fun observeTotalLikesReceived(chefId: Long): Flow<Int>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(likes: List<LikeEntity>)
 }
