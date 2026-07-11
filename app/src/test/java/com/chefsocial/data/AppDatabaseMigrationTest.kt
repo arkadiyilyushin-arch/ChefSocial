@@ -27,7 +27,7 @@ class AppDatabaseMigrationTest {
         createVersionOneDatabase()
 
         Room.databaseBuilder(context, AppDatabase::class.java, dbName)
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
             .build()
             .openHelper
             .writableDatabase
@@ -38,6 +38,11 @@ class AppDatabaseMigrationTest {
                 assertTrue(db.hasColumn("comments", "uuid"))
                 assertTrue(db.hasTable("bookmarks"))
                 assertTrue(db.hasColumn("bookmarks", "savedAt"))
+                assertTrue(db.hasTable("news_posts"))
+                assertTrue(db.hasTable("conversations"))
+                assertTrue(db.hasTable("messages"))
+                assertTrue(db.hasTable("forum_threads"))
+                assertTrue(db.hasTable("forum_posts"))
             }
     }
 

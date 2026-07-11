@@ -13,6 +13,11 @@ class ChefRepository(private val db: AppDatabase) {
     private val followDao = db.followDao()
     private val commentDao = db.commentDao()
     private val bookmarkDao = db.bookmarkDao()
+    private val newsPostDao = db.newsPostDao()
+    private val conversationDao = db.conversationDao()
+    private val messageDao = db.messageDao()
+    private val forumThreadDao = db.forumThreadDao()
+    private val forumPostDao = db.forumPostDao()
 
     fun observeCurrentUser(): Flow<ChefEntity?> = chefDao.observeCurrentUser()
 
@@ -73,6 +78,28 @@ class ChefRepository(private val db: AppDatabase) {
 
     fun searchChefs(query: String): Flow<List<ChefEntity>> = chefDao.search(query)
 
+    fun observeNews(): Flow<List<NewsPostEntity>> = newsPostDao.observeAll()
+
+    fun observeNewsPost(id: Long): Flow<NewsPostEntity?> = newsPostDao.observeById(id)
+
+    fun observeConversations(chefId: Long): Flow<List<ConversationEntity>> =
+        conversationDao.observeForChef(chefId)
+
+    fun observeConversation(id: Long): Flow<ConversationEntity?> =
+        conversationDao.observeById(id)
+
+    fun observeMessages(conversationId: Long): Flow<List<MessageWithSender>> =
+        messageDao.observeByConversation(conversationId)
+
+    fun observeForumThreads(): Flow<List<ForumThreadWithAuthor>> = forumThreadDao.observeAll()
+
+    fun observeForumThread(id: Long): Flow<ForumThreadWithAuthor?> = forumThreadDao.observeById(id)
+
+    fun observeForumPosts(threadId: Long): Flow<List<ForumPostWithAuthor>> =
+        forumPostDao.observeByThread(threadId)
+
+    fun observeForumReplyCount(threadId: Long): Flow<Int> = forumPostDao.observeReplyCount(threadId)
+
     suspend fun counts(): Pair<Int, Int> =
         recipeDao.getAll().size to commentDao.getAll().size
 
@@ -126,7 +153,84 @@ class ChefRepository(private val db: AppDatabase) {
         chefDao.updateProfile(id, name.trim(), bio.trim(), specialty.trim())
     }
 
+    suspend fun publishNews(
+        title: String,
+        summary: String,
+        body: String,
+        imageUrl: String = "",
+        authorName: String = "Admin",
+        isPinned: Boolean = false,
+    ): Long = newsPostDao.insert(
+        NewsPostEntity(
+            title = title.trim(),
+            summary = summary.trim(),
+            body = body.trim(),
+            imageUrl = imageUrl.trim(),
+            authorName = authorName.trim(),
+            isPinned = isPinned,
+            publishedAt = System.currentTimeMillis(),
+        ),
+    )
+
+    suspend fun sendMessage(
+        senderId: Long,
+        recipientId: Long,
+        text: String,
+    ): Long {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return -1
+        var conversation = conversationDao.findBetween(senderId, recipientId)
+        if (conversation == null) {
+            val id = conversationDao.insert(
+                ConversationEntity(
+                    participant1Id = minOf(senderId, recipientId),
+                    participant2Id = maxOf(senderId, recipientId),
+                ),
+            )
+            conversation = ConversationEntity(
+                id = id,
+                participant1Id = minOf(senderId, recipientId),
+                participant2Id = maxOf(senderId, recipientId),
+            )
+        }
+        val now = System.currentTimeMillis()
+        val messageId = messageDao.insert(
+            MessageEntity(
+                conversationId = conversation.id,
+                senderId = senderId,
+                text = trimmed,
+                createdAt = now,
+            ),
+        )
+        conversationDao.updatePreview(conversation.id, trimmed, now)
+        return messageId
+    }
+
+    suspend fun createForumThread(authorId: Long, title: String, body: String): Long =
+        forumThreadDao.insert(
+            ForumThreadEntity(
+                title = title.trim(),
+                body = body.trim(),
+                authorId = authorId,
+            ),
+        )
+
+    suspend fun addForumReply(threadId: Long, authorId: Long, text: String): Long {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return -1
+        return forumPostDao.insert(
+            ForumPostEntity(
+                threadId = threadId,
+                authorId = authorId,
+                text = trimmed,
+            ),
+        )
+    }
+
+    suspend fun getChefById(id: Long): ChefEntity? = chefDao.getById(id)
+
     suspend fun seedIfEmpty() {
         if (chefDao.count() == 0) DatabaseSeeder.seed(db)
+        else DatabaseSeeder.seedSocialIfEmpty(db)
     }
 }

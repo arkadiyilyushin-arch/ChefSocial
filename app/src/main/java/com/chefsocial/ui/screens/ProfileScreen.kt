@@ -45,6 +45,7 @@ fun ProfileScreen(
     onSelectTab: (String) -> Unit,
     onRecipeClick: (Long) -> Unit,
     onSaved: () -> Unit,
+    onCreateRecipe: () -> Unit = {},
 ) {
     val strings = LocalAppStrings.current
     val currentUser by viewModel.currentUser.collectAsState()
@@ -116,6 +117,11 @@ fun ProfileScreen(
             item {
                 OutlinedButton(onClick = onSaved, modifier = Modifier.fillMaxWidth()) {
                     Text(strings.savedRecipes)
+                }
+            }
+            item {
+                Button(onClick = onCreateRecipe, modifier = Modifier.fillMaxWidth()) {
+                    Text(strings.newRecipe)
                 }
             }
             item {

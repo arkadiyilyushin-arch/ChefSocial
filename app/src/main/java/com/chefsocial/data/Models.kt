@@ -28,3 +28,21 @@ data class LeaderboardEntry(
     val totalLikes: Int,
     val recipeCount: Int,
 )
+
+data class MessageWithSender(
+    @Embedded val message: MessageEntity,
+    @Relation(parentColumn = "senderId", entityColumn = "id")
+    val sender: ChefEntity,
+)
+
+data class ForumThreadWithAuthor(
+    @Embedded val thread: ForumThreadEntity,
+    @Relation(parentColumn = "authorId", entityColumn = "id")
+    val author: ChefEntity,
+)
+
+data class ForumPostWithAuthor(
+    @Embedded val post: ForumPostEntity,
+    @Relation(parentColumn = "authorId", entityColumn = "id")
+    val author: ChefEntity,
+)

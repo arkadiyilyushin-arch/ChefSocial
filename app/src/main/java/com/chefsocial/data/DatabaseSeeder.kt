@@ -1,6 +1,14 @@
 package com.chefsocial.data
 
 object DatabaseSeeder {
+    suspend fun seedSocialIfEmpty(db: AppDatabase) {
+        val chefDao = db.chefDao()
+        val me = chefDao.getAll().firstOrNull { it.isCurrentUser } ?: return
+        val others = chefDao.getAll().filter { !it.isCurrentUser }
+        if (others.size < 3) return
+        seedNewsAndSocial(db, me.id, others[0].id, others[1].id, others[2].id)
+    }
+
     suspend fun seed(db: AppDatabase) {
         val chefDao = db.chefDao()
         val recipeDao = db.recipeDao()
@@ -178,5 +186,131 @@ object DatabaseSeeder {
                 text = "Отличный обед на каждый день, быстро и полезно.",
             ),
         )
+
+        seedNewsAndSocial(db, me, anna, ivan, maria)
+    }
+
+    private suspend fun seedNewsAndSocial(
+        db: AppDatabase,
+        me: Long,
+        anna: Long,
+        ivan: Long,
+        maria: Long,
+    ) {
+        val newsDao = db.newsPostDao()
+        if (newsDao.getAll().isEmpty()) {
+            val now = System.currentTimeMillis()
+            newsDao.insert(
+                NewsPostEntity(
+                    title = "Открыт сезон летних фестивалей еды",
+                    summary = "Chefly собирает лучшие гастрономические события июля.",
+                    body = "В этом месяце стартуют фестивали уличной еды в Москве, Санкт-Петербурге и Казани. " +
+                        "Следите за расписанием мастер-классов от шеф-поваров и делитесь впечатлениями в форуме.",
+                    authorName = "Редакция Chefly",
+                    isPinned = true,
+                    publishedAt = now - 86_400_000,
+                ),
+            )
+            newsDao.insert(
+                NewsPostEntity(
+                    title = "Новые правила публикации рецептов",
+                    summary = "Обновили требования к фото и описанию блюд.",
+                    body = "Теперь каждый рецепт должен содержать чёткие шаги и хотя бы одно фото. " +
+                        "Это поможет другим поварам быстрее повторить блюдо и получить больше лайков.",
+                    authorName = "Админ",
+                    publishedAt = now - 172_800_000,
+                ),
+            )
+            newsDao.insert(
+                NewsPostEntity(
+                    title = "Топ-5 трендов домашней кухни",
+                    summary = "Что готовят чаще всего в этом сезоне.",
+                    body = "1. Паста с трюфельным маслом\n2. Запечённые овощи\n3. Домашний хлеб\n" +
+                        "4. Смузи-боулы\n5. Азиатские боулы с рисом",
+                    authorName = "Редакция Chefly",
+                    publishedAt = now - 259_200_000,
+                ),
+            )
+        }
+
+        val forumThreadDao = db.forumThreadDao()
+        if (forumThreadDao.getAll().isEmpty()) {
+            val threadId = forumThreadDao.insert(
+                ForumThreadEntity(
+                    title = "Какой соус лучше для пасты карбонара?",
+                    body = "Делюсь своим опытом: без сливок, только яйца и сыр. А вы как готовите?",
+                    authorId = ivan,
+                ),
+            )
+            db.forumPostDao().insert(
+                ForumPostEntity(
+                    threadId = threadId,
+                    authorId = anna,
+                    text = "Согласна! Настоящая карбонара — это guanciale и pecorino.",
+                ),
+            )
+            db.forumPostDao().insert(
+                ForumPostEntity(
+                    threadId = threadId,
+                    authorId = maria,
+                    text = "Пробовала лёгкую версию на греческом йогурте — тоже вкусно для будней.",
+                ),
+            )
+            forumThreadDao.insert(
+                ForumThreadEntity(
+                    title = "Идеи для быстрого ужина после работы",
+                    body = "Нужны рецепты до 30 минут. Что готовите чаще всего?",
+                    authorId = me,
+                ),
+            )
+        }
+
+        val conversationDao = db.conversationDao()
+        if (conversationDao.getAll().isEmpty()) {
+            val convAnna = conversationDao.insert(
+                ConversationEntity(
+                    participant1Id = me,
+                    participant2Id = anna,
+                    lastMessageAt = System.currentTimeMillis() - 3_600_000,
+                    lastMessagePreview = "Спасибо за рецепт медовика!",
+                ),
+            )
+            db.messageDao().insert(
+                MessageEntity(
+                    conversationId = convAnna,
+                    senderId = anna,
+                    text = "Привет! Увидела твой комментарий к салату — рада, что понравилось.",
+                    createdAt = System.currentTimeMillis() - 7_200_000,
+                    isRead = true,
+                ),
+            )
+            db.messageDao().insert(
+                MessageEntity(
+                    conversationId = convAnna,
+                    senderId = me,
+                    text = "Спасибо за рецепт медовика!",
+                    createdAt = System.currentTimeMillis() - 3_600_000,
+                    isRead = true,
+                ),
+            )
+
+            val convIvan = conversationDao.insert(
+                ConversationEntity(
+                    participant1Id = me,
+                    participant2Id = ivan,
+                    lastMessageAt = System.currentTimeMillis() - 86_400_000,
+                    lastMessagePreview = "Когда следующий мастер-класс по пасте?",
+                ),
+            )
+            db.messageDao().insert(
+                MessageEntity(
+                    conversationId = convIvan,
+                    senderId = ivan,
+                    text = "Когда следующий мастер-класс по пасте?",
+                    createdAt = System.currentTimeMillis() - 86_400_000,
+                    isRead = false,
+                ),
+            )
+        }
     }
 }

@@ -64,6 +64,15 @@ fun Application.module() {
             SyncStore.merge(payload)
             call.respond(SyncResponseDto(payload = SyncStore.snapshot(), message = "merged"))
         }
+        post("/api/admin/news") {
+            if (!call.isAuthorized(apiToken)) {
+                call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "unauthorized"))
+                return@post
+            }
+            val post = call.receive<NewsPostDto>()
+            SyncStore.addNews(post)
+            call.respond(SyncResponseDto(payload = SyncStore.snapshot(), message = "news published"))
+        }
         post("/api/upload") {
             if (!call.isAuthorized(apiToken)) {
                 call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "unauthorized"))
@@ -156,6 +165,11 @@ data class SyncPayloadDto(
     val likes: List<LikeDto> = emptyList(),
     val follows: List<FollowDto> = emptyList(),
     val bookmarks: List<BookmarkDto> = emptyList(),
+    val newsPosts: List<NewsPostDto> = emptyList(),
+    val conversations: List<ConversationDto> = emptyList(),
+    val messages: List<MessageDto> = emptyList(),
+    val forumThreads: List<ForumThreadDto> = emptyList(),
+    val forumPosts: List<ForumPostDto> = emptyList(),
 )
 
 @Serializable
@@ -204,6 +218,55 @@ data class FollowDto(val followerUuid: String, val followingUuid: String)
 data class BookmarkDto(val chefUuid: String, val recipeUuid: String, val savedAt: Long)
 
 @Serializable
+data class NewsPostDto(
+    val uuid: String,
+    val title: String,
+    val body: String,
+    val summary: String = "",
+    val imageUrl: String = "",
+    val authorName: String = "Admin",
+    val isPinned: Boolean = false,
+    val publishedAt: Long,
+)
+
+@Serializable
+data class ConversationDto(
+    val uuid: String,
+    val participant1Uuid: String,
+    val participant2Uuid: String,
+    val lastMessageAt: Long = 0,
+    val lastMessagePreview: String = "",
+)
+
+@Serializable
+data class MessageDto(
+    val uuid: String,
+    val conversationUuid: String,
+    val senderUuid: String,
+    val text: String,
+    val createdAt: Long,
+    val isRead: Boolean = false,
+)
+
+@Serializable
+data class ForumThreadDto(
+    val uuid: String,
+    val title: String,
+    val body: String,
+    val authorUuid: String,
+    val createdAt: Long,
+)
+
+@Serializable
+data class ForumPostDto(
+    val uuid: String,
+    val threadUuid: String,
+    val authorUuid: String,
+    val text: String,
+    val createdAt: Long,
+)
+
+@Serializable
 data class SyncResponseDto(val payload: SyncPayloadDto, val message: String = "ok")
 
 @Serializable
@@ -218,6 +281,11 @@ object SyncStore {
     private val likes = linkedSetOf<LikeDto>()
     private val follows = linkedSetOf<FollowDto>()
     private val bookmarks = linkedSetOf<BookmarkDto>()
+    private val newsPosts = linkedMapOf<String, NewsPostDto>()
+    private val conversations = linkedMapOf<String, ConversationDto>()
+    private val messages = linkedMapOf<String, MessageDto>()
+    private val forumThreads = linkedMapOf<String, ForumThreadDto>()
+    private val forumPosts = linkedMapOf<String, ForumPostDto>()
 
     fun load() {
         if (!dataFile.exists()) return
@@ -241,7 +309,17 @@ object SyncStore {
         likes.addAll(payload.likes)
         follows.addAll(payload.follows)
         bookmarks.addAll(payload.bookmarks)
+        payload.newsPosts.forEach { newsPosts[it.uuid] = it }
+        payload.conversations.forEach { conversations[it.uuid] = it }
+        payload.messages.forEach { messages[it.uuid] = it }
+        payload.forumThreads.forEach { forumThreads[it.uuid] = it }
+        payload.forumPosts.forEach { forumPosts[it.uuid] = it }
         if (persist) persist()
+    }
+
+    fun addNews(post: NewsPostDto) {
+        newsPosts[post.uuid] = post
+        persist()
     }
 
     fun snapshot() = SyncPayloadDto(
@@ -251,5 +329,10 @@ object SyncStore {
         likes = likes.toList(),
         follows = follows.toList(),
         bookmarks = bookmarks.toList(),
+        newsPosts = newsPosts.values.toList(),
+        conversations = conversations.values.toList(),
+        messages = messages.values.toList(),
+        forumThreads = forumThreads.values.toList(),
+        forumPosts = forumPosts.values.toList(),
     )
 }

@@ -12,9 +12,16 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.chefsocial.ui.screens.AuthScreen
 import com.chefsocial.ui.screens.ChefProfileScreen
+import com.chefsocial.ui.screens.CommunicationScreen
+import com.chefsocial.ui.screens.CreateForumThreadScreen
+import com.chefsocial.ui.screens.CreateNewsScreen
 import com.chefsocial.ui.screens.CreateRecipeScreen
 import com.chefsocial.ui.screens.FeedScreen
+import com.chefsocial.ui.screens.ForumThreadScreen
 import com.chefsocial.ui.screens.LeaderboardScreen
+import com.chefsocial.ui.screens.MessageThreadScreen
+import com.chefsocial.ui.screens.NewsDetailScreen
+import com.chefsocial.ui.screens.NewsScreen
 import com.chefsocial.ui.screens.OnboardingScreen
 import com.chefsocial.ui.screens.ProfileScreen
 import com.chefsocial.ui.screens.RecipeDetailScreen
@@ -26,6 +33,8 @@ object Routes {
     const val AUTH = "auth"
     const val ONBOARDING = "onboarding"
     const val FEED = "feed"
+    const val NEWS = "news"
+    const val COMMUNICATION = "communication"
     const val SEARCH = "search"
     const val CREATE = "create"
     const val PROFILE = "profile"
@@ -33,10 +42,25 @@ object Routes {
     const val CHEF = "chef"
     const val LEADERBOARD = "leaderboard"
     const val SAVED = "saved"
+    const val NEWS_DETAIL = "news_detail"
+    const val CREATE_NEWS = "create_news"
+    const val MESSAGE_THREAD = "message_thread"
+    const val FORUM_THREAD = "forum_thread"
+    const val CREATE_FORUM_THREAD = "create_forum_thread"
 
     fun recipe(id: Long) = "$RECIPE/$id"
     fun chef(id: Long) = "$CHEF/$id"
+    fun newsDetail(id: Long) = "$NEWS_DETAIL/$id"
+    fun messageThread(id: Long) = "$MESSAGE_THREAD/$id"
+    fun forumThread(id: Long) = "$FORUM_THREAD/$id"
 }
+
+private val BOTTOM_TABS = setOf(
+    Routes.FEED,
+    Routes.NEWS,
+    Routes.COMMUNICATION,
+    Routes.PROFILE,
+)
 
 @Composable
 fun AppNavigation(viewModel: ChefViewModel) {
@@ -93,6 +117,27 @@ fun AppNavigation(viewModel: ChefViewModel) {
                 onRecipeClick = { id -> navController.navigate(Routes.recipe(id)) },
                 onAuthorClick = { id -> navController.navigate(Routes.chef(id)) },
                 onLeaderboard = { navController.navigate(Routes.LEADERBOARD) },
+                onSearch = { navController.navigate(Routes.SEARCH) },
+                onCreateRecipe = { navController.navigate(Routes.CREATE) },
+            )
+        }
+        composable(Routes.NEWS) {
+            NewsScreen(
+                viewModel = viewModel,
+                currentRoute = Routes.NEWS,
+                onSelectTab = selectTab,
+                onNewsClick = { id -> navController.navigate(Routes.newsDetail(id)) },
+                onCreateNews = { navController.navigate(Routes.CREATE_NEWS) },
+            )
+        }
+        composable(Routes.COMMUNICATION) {
+            CommunicationScreen(
+                viewModel = viewModel,
+                currentRoute = Routes.COMMUNICATION,
+                onSelectTab = selectTab,
+                onConversationClick = { id -> navController.navigate(Routes.messageThread(id)) },
+                onForumThreadClick = { id -> navController.navigate(Routes.forumThread(id)) },
+                onCreateThread = { navController.navigate(Routes.CREATE_FORUM_THREAD) },
             )
         }
         composable(Routes.SEARCH) {
@@ -118,6 +163,27 @@ fun AppNavigation(viewModel: ChefViewModel) {
                 onSelectTab = selectTab,
                 onRecipeClick = { id -> navController.navigate(Routes.recipe(id)) },
                 onSaved = { navController.navigate(Routes.SAVED) },
+                onCreateRecipe = { navController.navigate(Routes.CREATE) },
+            )
+        }
+        composable(Routes.CREATE_NEWS) {
+            CreateNewsScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onPublished = {
+                    navController.popBackStack()
+                    navController.navigateTab(Routes.NEWS)
+                },
+            )
+        }
+        composable(Routes.CREATE_FORUM_THREAD) {
+            CreateForumThreadScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onCreated = { threadId ->
+                    navController.popBackStack()
+                    navController.navigate(Routes.forumThread(threadId))
+                },
             )
         }
         composable(Routes.LEADERBOARD) {
@@ -132,6 +198,39 @@ fun AppNavigation(viewModel: ChefViewModel) {
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
                 onRecipeClick = { id -> navController.navigate(Routes.recipe(id)) },
+            )
+        }
+        composable(
+            route = "${Routes.NEWS_DETAIL}/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.LongType }),
+        ) { entry ->
+            val id = entry.arguments?.getLong("id") ?: return@composable
+            NewsDetailScreen(
+                viewModel = viewModel,
+                newsId = id,
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(
+            route = "${Routes.MESSAGE_THREAD}/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.LongType }),
+        ) { entry ->
+            val id = entry.arguments?.getLong("id") ?: return@composable
+            MessageThreadScreen(
+                viewModel = viewModel,
+                conversationId = id,
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(
+            route = "${Routes.FORUM_THREAD}/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.LongType }),
+        ) { entry ->
+            val id = entry.arguments?.getLong("id") ?: return@composable
+            ForumThreadScreen(
+                viewModel = viewModel,
+                threadId = id,
+                onBack = { navController.popBackStack() },
             )
         }
         composable(
@@ -162,6 +261,10 @@ fun AppNavigation(viewModel: ChefViewModel) {
 }
 
 private fun NavHostController.navigateTab(route: String) {
+    if (route !in BOTTOM_TABS) {
+        navigate(route)
+        return
+    }
     navigate(route) {
         popUpTo(Routes.FEED) { saveState = true }
         launchSingleTop = true

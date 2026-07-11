@@ -11,8 +11,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -38,6 +41,7 @@ import com.chefsocial.model.RecipeCategory
 import com.chefsocial.ui.components.ChefBottomBar
 import com.chefsocial.ui.components.RecipeCard
 import com.chefsocial.ui.localization.LocalAppStrings
+import com.chefsocial.ui.theme.CheflyTerracotta
 import com.chefsocial.ui.viewmodel.ChefViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,6 +53,8 @@ fun FeedScreen(
     onRecipeClick: (Long) -> Unit,
     onAuthorClick: (Long) -> Unit,
     onLeaderboard: () -> Unit,
+    onSearch: () -> Unit,
+    onCreateRecipe: () -> Unit,
 ) {
     val strings = LocalAppStrings.current
     val feed by viewModel.feed.collectAsState()
@@ -70,6 +76,9 @@ fun FeedScreen(
             TopAppBar(
                 title = { Text(strings.appTitle, style = MaterialTheme.typography.headlineMedium) },
                 actions = {
+                    IconButton(onClick = onSearch) {
+                        Icon(Icons.Default.Search, contentDescription = strings.search)
+                    }
                     IconButton(onClick = onLeaderboard) {
                         Icon(Icons.Default.EmojiEvents, contentDescription = strings.leaderboard)
                     }
@@ -90,6 +99,15 @@ fun FeedScreen(
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onCreateRecipe,
+                containerColor = CheflyTerracotta,
+                contentColor = Color.White,
+            ) {
+                Icon(Icons.Default.Add, contentDescription = strings.newRecipe)
+            }
+        },
         bottomBar = { ChefBottomBar(currentRoute = currentRoute, onSelect = onSelectTab) },
     ) { padding ->
         LazyColumn(

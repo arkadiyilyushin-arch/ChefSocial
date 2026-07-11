@@ -5,8 +5,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.chefsocial.data.AppDatabase
 import com.chefsocial.data.ChefRepository
+import com.chefsocial.data.ChefEntity
 import com.chefsocial.data.ChefWithStats
 import com.chefsocial.data.CommentWithAuthor
+import com.chefsocial.data.ConversationEntity
+import com.chefsocial.data.ForumPostWithAuthor
+import com.chefsocial.data.ForumThreadWithAuthor
+import com.chefsocial.data.MessageWithSender
+import com.chefsocial.data.NewsPostEntity
 import com.chefsocial.data.RecipeWithAuthor
 import com.chefsocial.data.remote.SyncRepository
 import com.chefsocial.model.RecipeCategory
@@ -16,6 +22,8 @@ import com.chefsocial.util.AppLanguage
 import com.chefsocial.util.getAppLanguage
 import com.chefsocial.util.getServerApiToken
 import com.chefsocial.util.getServerUrl
+import com.chefsocial.util.getStoredAuthEmail
+import com.chefsocial.util.isAdminUser
 import com.chefsocial.util.isLoggedIn
 import com.chefsocial.util.isOnboardingCompleted
 import com.chefsocial.util.saveAuthCredentials
@@ -46,6 +54,12 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     private val interactionStates = mutableMapOf<String, StateFlow<RecipeInteractions>>()
     private val bookmarkStates = mutableMapOf<String, StateFlow<Boolean>>()
     private val followStates = mutableMapOf<String, StateFlow<Boolean>>()
+    private val chefStates = mutableMapOf<Long, StateFlow<ChefEntity?>>()
+    private val newsStates = mutableMapOf<Long, StateFlow<NewsPostEntity?>>()
+    private val messageStates = mutableMapOf<Long, StateFlow<List<MessageWithSender>>>()
+    private val forumThreadStates = mutableMapOf<Long, StateFlow<ForumThreadWithAuthor?>>()
+    private val forumPostStates = mutableMapOf<Long, StateFlow<List<ForumPostWithAuthor>>>()
+    private val conversationStates = mutableMapOf<Long, StateFlow<ConversationEntity?>>()
 
     private val _language = MutableStateFlow(getAppLanguage(application))
     val language: StateFlow<AppLanguage> = _language.asStateFlow()
@@ -74,6 +88,11 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private val _communicationTab = MutableStateFlow(0)
+    val communicationTab: StateFlow<Int> = _communicationTab.asStateFlow()
+
+    val isAdmin: Boolean = isAdminUser(application)
+
     init {
         viewModelScope.launch { repository.seedIfEmpty() }
     }
@@ -97,6 +116,57 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
         if (query.isBlank()) kotlinx.coroutines.flow.flowOf(emptyList())
         else repository.searchChefs(query)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val news = repository.observeNews()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val forumThreads = repository.observeForumThreads()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val conversations = currentUser.flatMapLatest { user ->
+        if (user == null) kotlinx.coroutines.flow.flowOf(emptyList())
+        else repository.observeConversations(user.id)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun observeChef(id: Long): StateFlow<ChefEntity?> =
+        chefStates.getOrPut(id) {
+            repository.observeChef(id)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        }
+
+    fun observeNewsPost(id: Long): StateFlow<NewsPostEntity?> =
+        newsStates.getOrPut(id) {
+            repository.observeNewsPost(id)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        }
+
+    fun observeMessages(conversationId: Long): StateFlow<List<MessageWithSender>> =
+        messageStates.getOrPut(conversationId) {
+            repository.observeMessages(conversationId)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        }
+
+    fun observeForumThread(id: Long): StateFlow<ForumThreadWithAuthor?> =
+        forumThreadStates.getOrPut(id) {
+            repository.observeForumThread(id)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        }
+
+    fun observeForumPosts(threadId: Long): StateFlow<List<ForumPostWithAuthor>> =
+        forumPostStates.getOrPut(threadId) {
+            repository.observeForumPosts(threadId)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        }
+
+    fun observeConversation(id: Long): StateFlow<ConversationEntity?> =
+        conversationStates.getOrPut(id) {
+            repository.observeConversation(id)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        }
+
+    fun otherParticipantId(conversation: ConversationEntity, currentUserId: Long): Long =
+        if (conversation.participant1Id == currentUserId) conversation.participant2Id
+        else conversation.participant1Id
 
     fun observeRecipe(id: Long): StateFlow<RecipeWithAuthor?> =
         recipeStates.getOrPut(id) {
@@ -162,6 +232,7 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setFeedCategory(category: RecipeCategory) { _feedCategory.value = category }
     fun setSearchQuery(query: String) { _searchQuery.value = query }
+    fun setCommunicationTab(index: Int) { _communicationTab.value = index }
 
     fun setLanguage(language: AppLanguage) {
         setAppLanguage(getApplication(), language)
@@ -301,6 +372,43 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateProfile(id: Long, name: String, bio: String, specialty: String) {
         viewModelScope.launch { repository.updateProfile(id, name, bio, specialty) }
+    }
+
+    fun publishNews(
+        title: String,
+        summary: String,
+        body: String,
+        imageUrl: String = "",
+        isPinned: Boolean = false,
+        onSuccess: () -> Unit,
+    ) {
+        if (!isAdmin) return
+        viewModelScope.launch {
+            repository.publishNews(
+                title = title,
+                summary = summary,
+                body = body,
+                imageUrl = imageUrl,
+                authorName = getStoredAuthEmail(getApplication()).ifBlank { "Admin" },
+                isPinned = isPinned,
+            )
+            onSuccess()
+        }
+    }
+
+    fun sendMessage(senderId: Long, recipientId: Long, text: String) {
+        viewModelScope.launch { repository.sendMessage(senderId, recipientId, text) }
+    }
+
+    fun createForumThread(authorId: Long, title: String, body: String, onSuccess: (Long) -> Unit) {
+        viewModelScope.launch {
+            val id = repository.createForumThread(authorId, title, body)
+            onSuccess(id)
+        }
+    }
+
+    fun addForumReply(threadId: Long, authorId: Long, text: String) {
+        viewModelScope.launch { repository.addForumReply(threadId, authorId, text) }
     }
 }
 

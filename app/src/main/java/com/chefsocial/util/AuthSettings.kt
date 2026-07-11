@@ -43,3 +43,8 @@ fun validateLogin(context: Context, email: String, password: String): Boolean {
 
 fun hasRegisteredAccount(context: Context): Boolean =
     getStoredAuthEmail(context).isNotBlank()
+
+const val ADMIN_EMAIL = "admin@chefly.app"
+
+fun isAdminUser(context: Context): Boolean =
+    getStoredAuthEmail(context).equals(ADMIN_EMAIL, ignoreCase = true)
