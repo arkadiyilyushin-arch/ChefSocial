@@ -14,17 +14,45 @@ android {
         applicationId = "com.chefsocial"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
+        buildConfigField("String", "DEFAULT_SERVER_URL", "\"https://api.chefsocial.local/\"")
+    }
+
+    signingConfigs {
+        val releaseStoreFile = providers.gradleProperty("RELEASE_STORE_FILE").orNull
+        val releaseStorePassword = providers.gradleProperty("RELEASE_STORE_PASSWORD").orNull
+        val releaseKeyAlias = providers.gradleProperty("RELEASE_KEY_ALIAS").orNull
+        val releaseKeyPassword = providers.gradleProperty("RELEASE_KEY_PASSWORD").orNull
+
+        if (
+            !releaseStoreFile.isNullOrBlank() &&
+            !releaseStorePassword.isNullOrBlank() &&
+            !releaseKeyAlias.isNullOrBlank() &&
+            !releaseKeyPassword.isNullOrBlank()
+        ) {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders["usesCleartextTraffic"] = "true"
+            buildConfigField("String", "DEFAULT_SERVER_URL", "\"http://10.0.2.2:8080/\"")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            manifestPlaceholders["usesCleartextTraffic"] = "false"
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
@@ -39,6 +67,11 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
 }
 
@@ -63,5 +96,11 @@ dependencies {
     implementation(libs.retrofit.kotlinx.serialization)
     implementation(libs.okhttp)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.work.runtime)
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.room.testing)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
     debugImplementation(libs.androidx.ui.tooling)
 }

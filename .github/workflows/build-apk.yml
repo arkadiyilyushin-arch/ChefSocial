@@ -27,20 +27,29 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug --no-daemon
+      - name: Test and build
+        run: ./gradlew test lintDebug assembleDebug assembleRelease --no-daemon
 
-      - name: Upload APK artifact
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: ChefSocial-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 90
 
+      - name: Upload release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChefSocial-release-apk
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 90
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.1.${{ github.run_number }}
-          name: ChefSocial v1.1 (${{ github.run_number }})
-          files: app/build/outputs/apk/debug/app-debug.apk
+          tag_name: v1.2.${{ github.run_number }}
+          name: ChefSocial v1.2 (${{ github.run_number }})
+          files: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/release/*.apk
           generate_release_notes: true
