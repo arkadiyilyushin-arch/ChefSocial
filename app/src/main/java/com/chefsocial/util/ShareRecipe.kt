@@ -18,7 +18,7 @@ fun shareRecipe(context: Context, recipe: RecipeWithAuthor, strings: AppStrings)
         appendLine(recipe.recipe.steps)
         appendLine()
         appendLine("— ${recipe.author.name} (@${recipe.author.username})")
-        appendLine("ChefSocial")
+        appendLine("Chefly")
     }
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"

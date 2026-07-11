@@ -12,7 +12,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.chefsocial.R
 
-private const val CHANNEL_ID = "chef_social_updates"
+private const val CHANNEL_ID = "chefly_updates"
 
 fun ensureNotificationChannel(context: Context, channelName: String) {
     val channel = NotificationChannel(
@@ -35,7 +35,7 @@ fun showNotification(context: Context, id: Int, title: String, body: String) {
     }
     ensureNotificationChannel(context, title)
     val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-        .setSmallIcon(R.drawable.ic_launcher)
+        .setSmallIcon(R.mipmap.ic_launcher)
         .setContentTitle(title)
         .setContentText(body)
         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
