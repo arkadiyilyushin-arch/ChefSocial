@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.chefsocial.ui.screens.AuthScreen
 import com.chefsocial.ui.screens.ChefProfileScreen
 import com.chefsocial.ui.screens.CreateRecipeScreen
 import com.chefsocial.ui.screens.FeedScreen
@@ -22,6 +23,7 @@ import com.chefsocial.ui.screens.SearchScreen
 import com.chefsocial.ui.viewmodel.ChefViewModel
 
 object Routes {
+    const val AUTH = "auth"
     const val ONBOARDING = "onboarding"
     const val FEED = "feed"
     const val SEARCH = "search"
@@ -41,10 +43,17 @@ fun AppNavigation(viewModel: ChefViewModel) {
     val navController = rememberNavController()
     val selectTab: (String) -> Unit = { route -> navController.navigateTab(route) }
     val onboardingCompleted by viewModel.onboardingCompleted.collectAsState()
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
 
-    LaunchedEffect(onboardingCompleted) {
-        if (!onboardingCompleted) {
-            navController.navigate(Routes.ONBOARDING) {
+    val startDestination = when {
+        !isLoggedIn -> Routes.AUTH
+        !onboardingCompleted -> Routes.ONBOARDING
+        else -> Routes.FEED
+    }
+
+    LaunchedEffect(isLoggedIn) {
+        if (!isLoggedIn) {
+            navController.navigate(Routes.AUTH) {
                 popUpTo(0) { inclusive = true }
             }
         }
@@ -52,8 +61,20 @@ fun AppNavigation(viewModel: ChefViewModel) {
 
     NavHost(
         navController = navController,
-        startDestination = if (onboardingCompleted) Routes.FEED else Routes.ONBOARDING,
+        startDestination = startDestination,
     ) {
+        composable(Routes.AUTH) {
+            AuthScreen(
+                onLogin = viewModel::login,
+                onRegister = viewModel::register,
+                onAuthenticated = {
+                    val destination = if (onboardingCompleted) Routes.FEED else Routes.ONBOARDING
+                    navController.navigate(destination) {
+                        popUpTo(Routes.AUTH) { inclusive = true }
+                    }
+                },
+            )
+        }
         composable(Routes.ONBOARDING) {
             OnboardingScreen(
                 onComplete = {

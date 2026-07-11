@@ -16,12 +16,16 @@ import com.chefsocial.util.AppLanguage
 import com.chefsocial.util.getAppLanguage
 import com.chefsocial.util.getServerApiToken
 import com.chefsocial.util.getServerUrl
+import com.chefsocial.util.isLoggedIn
 import com.chefsocial.util.isOnboardingCompleted
+import com.chefsocial.util.saveAuthCredentials
 import com.chefsocial.util.setAppLanguage
 import com.chefsocial.util.setLastSyncStats
+import com.chefsocial.util.setLoggedIn
 import com.chefsocial.util.setOnboardingCompleted
 import com.chefsocial.util.setServerApiToken
 import com.chefsocial.util.setServerUrl
+import com.chefsocial.util.validateLogin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -48,6 +52,9 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _onboardingCompleted = MutableStateFlow(isOnboardingCompleted(application))
     val onboardingCompleted: StateFlow<Boolean> = _onboardingCompleted.asStateFlow()
+
+    private val _isLoggedIn = MutableStateFlow(isLoggedIn(application))
+    val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
 
     private val _serverUrl = MutableStateFlow(getServerUrl(application))
     val serverUrl: StateFlow<String> = _serverUrl.asStateFlow()
@@ -164,6 +171,27 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     fun completeOnboarding() {
         setOnboardingCompleted(getApplication(), true)
         _onboardingCompleted.value = true
+    }
+
+    fun login(email: String, password: String): Boolean {
+        val success = validateLogin(getApplication(), email, password)
+        if (success) {
+            setLoggedIn(getApplication(), true)
+            _isLoggedIn.value = true
+        }
+        return success
+    }
+
+    fun register(email: String, password: String): Boolean {
+        if (email.isBlank() || password.length < 6) return false
+        saveAuthCredentials(getApplication(), email, password)
+        _isLoggedIn.value = true
+        return true
+    }
+
+    fun logout() {
+        setLoggedIn(getApplication(), false)
+        _isLoggedIn.value = false
     }
 
     fun updateServerUrl(url: String) {
