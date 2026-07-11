@@ -34,6 +34,7 @@ import com.chefsocial.util.setOnboardingCompleted
 import com.chefsocial.util.setServerApiToken
 import com.chefsocial.util.setServerUrl
 import com.chefsocial.util.validateLogin
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -42,6 +43,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ChefViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = ChefRepository(AppDatabase.get(application))
@@ -94,7 +96,9 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     val isAdmin: Boolean = isAdminUser(application)
 
     init {
-        viewModelScope.launch { repository.seedIfEmpty() }
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { repository.seedIfEmpty() }
+        }
     }
 
     val currentUser = repository.observeCurrentUser()
