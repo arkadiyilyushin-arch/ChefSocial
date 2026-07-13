@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -51,6 +52,7 @@ import com.chefsocial.model.MessagePrivacy
 import com.chefsocial.model.ProfileVisibility
 import com.chefsocial.model.RecipeCategory
 import com.chefsocial.ui.localization.LocalAppStrings
+import com.chefsocial.ui.theme.CheflyTerracotta
 import com.chefsocial.ui.viewmodel.ChefViewModel
 import com.chefsocial.util.AppLanguage
 import java.text.SimpleDateFormat
@@ -121,7 +123,16 @@ fun ProfileSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(strings.settings) },
+                title = {
+                    Column {
+                        Text(strings.settings)
+                        Text(
+                            "v${BuildConfig.VERSION_NAME}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.back)
@@ -139,6 +150,19 @@ fun ProfileSettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
+            Surface(
+                color = CheflyTerracotta.copy(alpha = 0.12f),
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = "Chefly v${BuildConfig.VERSION_NAME} · ${strings.settingsAccount} · ${strings.settingsNotifications} · ${strings.settingsPrivacy}",
+                    modifier = Modifier.padding(12.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = CheflyTerracotta,
+                )
+            }
+
             SettingsSection(title = strings.settingsAccount) {
                 SettingsInfoRow(label = strings.authEmail, value = viewModel.authEmail.ifBlank { "—" })
                 OutlinedButton(

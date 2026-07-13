@@ -128,6 +128,7 @@ fun ProfileScreen(
                 InstagramProfileHeader(
                     stats = stats,
                     onEditProfile = onEditProfile,
+                    onSettings = onSettings,
                     onFollowers = onFollowers,
                     onFollowing = onFollowing,
                 )
@@ -223,6 +224,7 @@ fun ProfileScreen(
 private fun InstagramProfileHeader(
     stats: ChefWithStats?,
     onEditProfile: () -> Unit,
+    onSettings: () -> Unit,
     onFollowers: () -> Unit,
     onFollowing: () -> Unit,
 ) {
@@ -295,15 +297,30 @@ private fun InstagramProfileHeader(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedButton(
-            onClick = onEditProfile,
+        Row(
             modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                strings.editProfile,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-            )
+            OutlinedButton(
+                onClick = onEditProfile,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(
+                    strings.editProfile,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+            OutlinedButton(
+                onClick = onSettings,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(
+                    strings.settings,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
         }
     }
 }
