@@ -6,6 +6,7 @@ import com.chefsocial.util.isNotifyCommentsEnabled
 import com.chefsocial.util.isNotifyFollowersEnabled
 import com.chefsocial.util.isNotifyLikesEnabled
 import com.chefsocial.util.isNotifyMessagesEnabled
+import com.chefsocial.util.isNotifyNewsEnabled
 import com.chefsocial.util.isNotifyRecipesEnabled
 
 enum class NotificationKind {
