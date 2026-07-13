@@ -391,9 +391,9 @@ fun ProfileTabRow(
 ) {
     val strings = LocalAppStrings.current
     val tabs = buildList {
-        add(0 to Icons.Default.GridOn to strings.profileTabRecipes)
-        if (showSavedTab) add(1 to Icons.Outlined.BookmarkBorder to strings.profileTabSaved)
-        if (showLikedTab) add(2 to Icons.Outlined.FavoriteBorder to strings.profileTabLiked)
+        add(Triple(0, Icons.Default.GridOn, strings.profileTabRecipes))
+        if (showSavedTab) add(Triple(1, Icons.Outlined.BookmarkBorder, strings.profileTabSaved))
+        if (showLikedTab) add(Triple(2, Icons.Outlined.FavoriteBorder, strings.profileTabLiked))
     }
     val selectedIndex = tabs.indexOfFirst { it.first == selectedTab }.coerceAtLeast(0)
     val activeTab = tabs.getOrNull(selectedIndex)?.first ?: 0
@@ -413,8 +413,7 @@ fun ProfileTabRow(
         },
         divider = { HorizontalDivider(color = Color(0xFFE8E0DA)) },
     ) {
-        tabs.forEach { (index, iconLabel) ->
-            val (icon, label) = iconLabel
+        tabs.forEach { (index, icon, label) ->
             Tab(
                 selected = activeTab == index,
                 onClick = { onSelectTab(index) },
