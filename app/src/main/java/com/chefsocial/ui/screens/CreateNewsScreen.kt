@@ -1,20 +1,32 @@
 package com.chefsocial.ui.screens
 
+import android.Manifest
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,9 +38,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.chefsocial.model.NewsType
+import com.chefsocial.ui.components.RecipeImage
 import com.chefsocial.ui.localization.LocalAppStrings
 import com.chefsocial.ui.viewmodel.ChefViewModel
+import com.chefsocial.util.createCameraPhotoUri
+import com.chefsocial.util.persistRecipePhoto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,10 +56,43 @@ fun CreateNewsScreen(
     onPublished: () -> Unit,
 ) {
     val strings = LocalAppStrings.current
+    val context = LocalContext.current
     var title by rememberSaveable { mutableStateOf("") }
     var summary by rememberSaveable { mutableStateOf("") }
     var body by rememberSaveable { mutableStateOf("") }
+    var imageUrl by rememberSaveable { mutableStateOf("") }
     var isPinned by rememberSaveable { mutableStateOf(false) }
+    var isNew by rememberSaveable { mutableStateOf(true) }
+    var newsType by rememberSaveable { mutableStateOf(NewsType.GENERAL.id) }
+    var cameraUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent(),
+    ) { uri ->
+        uri?.let {
+            persistRecipePhoto(context, it)?.let { saved -> imageUrl = saved }
+        }
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture(),
+    ) { success ->
+        if (success) {
+            cameraUri?.let { uri ->
+                persistRecipePhoto(context, uri)?.let { saved -> imageUrl = saved }
+            }
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) {
+            val (uri, _) = createCameraPhotoUri(context)
+            cameraUri = uri
+            cameraLauncher.launch(uri)
+        }
+    }
 
     if (!viewModel.isAdmin) {
         Scaffold(
@@ -67,6 +118,8 @@ fun CreateNewsScreen(
         return
     }
 
+    val canPublish = title.isNotBlank() && body.isNotBlank() && imageUrl.isNotBlank()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -87,6 +140,30 @@ fun CreateNewsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            Text(strings.newsPhoto, style = MaterialTheme.typography.titleSmall)
+            if (imageUrl.isNotBlank()) {
+                RecipeImage(
+                    model = imageUrl,
+                    contentDescription = strings.newsPhoto,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp),
+                    contentScale = ContentScale.Crop,
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { galleryLauncher.launch("image/*") }) {
+                    Icon(Icons.Default.PhotoLibrary, contentDescription = null)
+                    Text(strings.uploadPhoto, modifier = Modifier.padding(start = 6.dp))
+                }
+                OutlinedButton(
+                    onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) },
+                ) {
+                    Icon(Icons.Default.CameraAlt, contentDescription = null)
+                    Text(strings.editPhoto, modifier = Modifier.padding(start = 6.dp))
+                }
+            }
+
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -108,24 +185,48 @@ fun CreateNewsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 6,
             )
+
+            Text(strings.newsType, style = MaterialTheme.typography.titleSmall)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                NewsType.publishable.forEach { type ->
+                    FilterChip(
+                        selected = newsType == type.id,
+                        onClick = { newsType = type.id },
+                        label = { Text(strings.newsTypeLabel(type)) },
+                    )
+                }
+            }
+
             RowWithCheckbox(
                 checked = isPinned,
                 onCheckedChange = { isPinned = it },
                 label = strings.pinNews,
             )
+            RowWithCheckbox(
+                checked = isNew,
+                onCheckedChange = { isNew = it },
+                label = strings.markNewsAsNew,
+            )
+
             Button(
                 onClick = {
-                    if (title.isNotBlank() && body.isNotBlank()) {
-                        viewModel.publishNews(
-                            title = title,
-                            summary = summary,
-                            body = body,
-                            isPinned = isPinned,
-                            onSuccess = onPublished,
-                        )
-                    }
+                    viewModel.publishNews(
+                        title = title,
+                        summary = summary,
+                        body = body,
+                        imageUrl = imageUrl,
+                        isPinned = isPinned,
+                        isNew = isNew,
+                        type = newsType,
+                        onSuccess = onPublished,
+                    )
                 },
-                enabled = title.isNotBlank() && body.isNotBlank(),
+                enabled = canPublish,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(strings.publishNews)
@@ -140,7 +241,7 @@ private fun RowWithCheckbox(
     onCheckedChange: (Boolean) -> Unit,
     label: String,
 ) {
-    androidx.compose.foundation.layout.Row(
+    Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

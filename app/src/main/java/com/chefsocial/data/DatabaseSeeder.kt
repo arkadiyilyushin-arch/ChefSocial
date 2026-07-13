@@ -206,8 +206,11 @@ object DatabaseSeeder {
                     summary = "Chefly собирает лучшие гастрономические события июля.",
                     body = "В этом месяце стартуют фестивали уличной еды в Москве, Санкт-Петербурге и Казани. " +
                         "Следите за расписанием мастер-классов от шеф-поваров и делитесь впечатлениями в форуме.",
+                    imageUrl = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800",
                     authorName = "Редакция Chefly",
                     isPinned = true,
+                    isNew = true,
+                    type = "event",
                     publishedAt = now - 86_400_000,
                 ),
             )
@@ -217,7 +220,9 @@ object DatabaseSeeder {
                     summary = "Обновили требования к фото и описанию блюд.",
                     body = "Теперь каждый рецепт должен содержать чёткие шаги и хотя бы одно фото. " +
                         "Это поможет другим поварам быстрее повторить блюдо и получить больше лайков.",
+                    imageUrl = "https://images.unsplash.com/photo-1466637574441-749b8f19452f?w=800",
                     authorName = "Админ",
+                    type = "update",
                     publishedAt = now - 172_800_000,
                 ),
             )
@@ -227,7 +232,10 @@ object DatabaseSeeder {
                     summary = "Что готовят чаще всего в этом сезоне.",
                     body = "1. Паста с трюфельным маслом\n2. Запечённые овощи\n3. Домашний хлеб\n" +
                         "4. Смузи-боулы\n5. Азиатские боулы с рисом",
+                    imageUrl = "https://images.unsplash.com/photo-1495521823127-1a6742722f6d?w=800",
                     authorName = "Редакция Chefly",
+                    isNew = true,
+                    type = "tips",
                     publishedAt = now - 259_200_000,
                 ),
             )

@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NewsPostDao {
-    @Query("SELECT * FROM news_posts ORDER BY isPinned DESC, publishedAt DESC")
+    @Query("SELECT * FROM news_posts ORDER BY isPinned DESC, isNew DESC, publishedAt DESC")
     fun observeAll(): Flow<List<NewsPostEntity>>
 
     @Query("SELECT * FROM news_posts WHERE id = :id LIMIT 1")

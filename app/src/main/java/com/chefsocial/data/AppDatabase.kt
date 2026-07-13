@@ -21,7 +21,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ForumThreadEntity::class,
         ForumPostEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -48,7 +48,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "chef_social.db",
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                     .build()
                     .also { instance = it }
             }
@@ -78,6 +78,17 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                if (!db.hasColumn("news_posts", "isNew")) {
+                    db.execSQL("ALTER TABLE news_posts ADD COLUMN isNew INTEGER NOT NULL DEFAULT 0")
+                }
+                if (!db.hasColumn("news_posts", "type")) {
+                    db.execSQL("ALTER TABLE news_posts ADD COLUMN type TEXT NOT NULL DEFAULT 'general'")
+                }
+            }
+        }
+
         val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 if (!db.hasColumn("chefs", "avatarUrl")) {
@@ -104,6 +115,8 @@ abstract class AppDatabase : RoomDatabase() {
                     imageUrl TEXT NOT NULL,
                     authorName TEXT NOT NULL,
                     isPinned INTEGER NOT NULL,
+                    isNew INTEGER NOT NULL,
+                    type TEXT NOT NULL,
                     publishedAt INTEGER NOT NULL
                 )
                 """.trimIndent(),

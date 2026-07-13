@@ -85,6 +85,8 @@ data class NewsPostDto(
     val imageUrl: String = "",
     val authorName: String = "Admin",
     val isPinned: Boolean = false,
+    val isNew: Boolean = false,
+    val type: String = "general",
     val publishedAt: Long,
 )
 

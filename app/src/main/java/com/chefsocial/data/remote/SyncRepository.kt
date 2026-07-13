@@ -381,6 +381,8 @@ class SyncRepository(
         imageUrl = imageUrl,
         authorName = authorName,
         isPinned = isPinned,
+        isNew = isNew,
+        type = type,
         publishedAt = publishedAt,
     )
 
@@ -392,6 +394,8 @@ class SyncRepository(
         imageUrl = imageUrl,
         authorName = authorName,
         isPinned = isPinned,
+        isNew = isNew,
+        type = type,
         publishedAt = publishedAt,
     )
 

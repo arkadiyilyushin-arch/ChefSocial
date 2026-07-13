@@ -2,6 +2,7 @@ package com.chefsocial.ui.localization
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import com.chefsocial.model.NewsType
 import com.chefsocial.model.RecipeCategory
 import com.chefsocial.util.AppLanguage
 
@@ -25,6 +26,11 @@ data class AppStrings(
     val newsBody: String,
     val publishNews: String,
     val pinNews: String,
+    val markNewsAsNew: String,
+    val newsPhoto: String,
+    val newsType: String,
+    val newsNew: String,
+    val allNewsTypes: String,
     val adminOnly: String,
     val communicationSubtitle: String,
     val messagesEmpty: String,
@@ -153,6 +159,15 @@ data class AppStrings(
         RecipeCategory.HOME -> if (locale == AppLanguage.EN) "Home cooking" else "Домашняя"
     }
 
+    fun newsTypeLabel(type: NewsType): String = when (type) {
+        NewsType.ALL -> allNewsTypes
+        NewsType.ANNOUNCEMENT -> if (locale == AppLanguage.EN) "Announcement" else "Объявление"
+        NewsType.EVENT -> if (locale == AppLanguage.EN) "Event" else "Событие"
+        NewsType.TIPS -> if (locale == AppLanguage.EN) "Tips" else "Советы"
+        NewsType.UPDATE -> if (locale == AppLanguage.EN) "Update" else "Обновление"
+        NewsType.GENERAL -> if (locale == AppLanguage.EN) "News" else "Новости"
+    }
+
     fun difficultyLabel(value: String): String = when (value) {
         "Легко", "Easy" -> easy
         "Сложно", "Hard" -> hard
@@ -179,6 +194,11 @@ data class AppStrings(
             newsBody = "Текст новости",
             publishNews = "Опубликовать",
             pinNews = "Закрепить",
+            markNewsAsNew = "Пометить как новую",
+            newsPhoto = "Фото новости",
+            newsType = "Тип новости",
+            newsNew = "Новое",
+            allNewsTypes = "Все",
             adminOnly = "Только для администратора",
             communicationSubtitle = "Сообщения и обсуждения",
             messagesEmpty = "Нет сообщений.\nНачните диалог с поваром из ленты.",
@@ -318,6 +338,11 @@ data class AppStrings(
             newsBody = "Article body",
             publishNews = "Publish",
             pinNews = "Pin to top",
+            markNewsAsNew = "Mark as new",
+            newsPhoto = "News photo",
+            newsType = "News type",
+            newsNew = "New",
+            allNewsTypes = "All",
             adminOnly = "Admin only",
             communicationSubtitle = "Messages and discussions",
             messagesEmpty = "No messages yet.\nStart a chat with a chef from the feed.",

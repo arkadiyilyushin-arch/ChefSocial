@@ -430,17 +430,28 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
         body: String,
         imageUrl: String = "",
         isPinned: Boolean = false,
+        isNew: Boolean = false,
+        type: String = "general",
         onSuccess: () -> Unit,
     ) {
         if (!isAdmin) return
         viewModelScope.launch {
+            val syncRepo = SyncRepository(
+                db = AppDatabase.get(getApplication()),
+                baseUrl = _serverUrl.value,
+                apiToken = _serverApiToken.value,
+            )
+            val finalImage = syncRepo.uploadPhotoIfLocal(getApplication(), imageUrl)
+                .getOrDefault(imageUrl)
             repository.publishNews(
                 title = title,
                 summary = summary,
                 body = body,
-                imageUrl = imageUrl,
+                imageUrl = finalImage,
                 authorName = getStoredAuthEmail(getApplication()).ifBlank { "Admin" },
                 isPinned = isPinned,
+                isNew = isNew,
+                type = type,
             )
             onSuccess()
         }

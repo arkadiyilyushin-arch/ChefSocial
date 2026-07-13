@@ -181,6 +181,8 @@ class ChefRepository(private val db: AppDatabase) {
         imageUrl: String = "",
         authorName: String = "Admin",
         isPinned: Boolean = false,
+        isNew: Boolean = false,
+        type: String = "general",
     ): Long = newsPostDao.insert(
         NewsPostEntity(
             title = title.trim(),
@@ -189,6 +191,8 @@ class ChefRepository(private val db: AppDatabase) {
             imageUrl = imageUrl.trim(),
             authorName = authorName.trim(),
             isPinned = isPinned,
+            isNew = isNew,
+            type = type.trim().ifBlank { "general" },
             publishedAt = System.currentTimeMillis(),
         ),
     )
