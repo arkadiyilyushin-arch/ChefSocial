@@ -28,6 +28,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val viewModel: ChefViewModel = viewModel()
             val language by viewModel.language.collectAsState()
+            val themeMode by viewModel.themeMode.collectAsState()
             val strings = rememberAppStrings(language)
 
             val permissionLauncher = rememberLauncherForActivityResult(
@@ -40,7 +41,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            ChefSocialTheme {
+            ChefSocialTheme(themeMode = themeMode) {
                 CompositionLocalProvider(LocalAppStrings provides strings) {
                     AppNavigation(viewModel = viewModel)
                 }

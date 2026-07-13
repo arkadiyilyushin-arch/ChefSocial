@@ -76,7 +76,9 @@ fun ProfileScreen(
     val recipes by viewModel.observeRecipesByAuthor(user.id).collectAsState()
     val savedRecipes by viewModel.observeSavedRecipes(user.id).collectAsState()
     val profileTab by viewModel.profileTab.collectAsState()
-    val list = if (profileTab == 0) recipes else savedRecipes
+    val showBookmarksPublic by viewModel.showBookmarksPublic.collectAsState()
+    val activeTab = if (!showBookmarksPublic && profileTab == 1) 0 else profileTab
+    val list = if (activeTab == 0) recipes else savedRecipes
 
     Scaffold(
         containerColor = CheflyCard,
@@ -132,12 +134,12 @@ fun ProfileScreen(
             }
             item {
                 TabRow(
-                    selectedTabIndex = profileTab,
+                    selectedTabIndex = activeTab,
                     containerColor = CheflyCard,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     indicator = { tabPositions ->
                         SecondaryIndicator(
-                            modifier = Modifier.tabIndicatorOffset(tabPositions[profileTab]),
+                            modifier = Modifier.tabIndicatorOffset(tabPositions[activeTab]),
                             color = MaterialTheme.colorScheme.onSurface,
                             height = 1.dp,
                         )
@@ -145,13 +147,13 @@ fun ProfileScreen(
                     divider = { HorizontalDivider(color = Color(0xFFE8E0DA)) },
                 ) {
                     Tab(
-                        selected = profileTab == 0,
+                        selected = activeTab == 0,
                         onClick = { viewModel.setProfileTab(0) },
                         icon = {
                             Icon(
                                 Icons.Default.GridOn,
                                 contentDescription = strings.profileTabRecipes,
-                                tint = if (profileTab == 0) {
+                                tint = if (activeTab == 0) {
                                     MaterialTheme.colorScheme.onSurface
                                 } else {
                                     Color(0xFFB0A8A2)
@@ -159,21 +161,23 @@ fun ProfileScreen(
                             )
                         },
                     )
-                    Tab(
-                        selected = profileTab == 1,
-                        onClick = { viewModel.setProfileTab(1) },
-                        icon = {
-                            Icon(
-                                Icons.Outlined.BookmarkBorder,
-                                contentDescription = strings.profileTabSaved,
-                                tint = if (profileTab == 1) {
-                                    MaterialTheme.colorScheme.onSurface
-                                } else {
-                                    Color(0xFFB0A8A2)
-                                },
-                            )
-                        },
-                    )
+                    if (showBookmarksPublic) {
+                        Tab(
+                            selected = activeTab == 1,
+                            onClick = { viewModel.setProfileTab(1) },
+                            icon = {
+                                Icon(
+                                    Icons.Outlined.BookmarkBorder,
+                                    contentDescription = strings.profileTabSaved,
+                                    tint = if (activeTab == 1) {
+                                        MaterialTheme.colorScheme.onSurface
+                                    } else {
+                                        Color(0xFFB0A8A2)
+                                    },
+                                )
+                            },
+                        )
+                    }
                 }
             }
             if (list.isEmpty()) {
@@ -185,7 +189,7 @@ fun ProfileScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            text = if (profileTab == 0) strings.noRecipesYet else strings.noSavedRecipes,
+                            text = if (activeTab == 0) strings.noRecipesYet else strings.noSavedRecipes,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
                         )

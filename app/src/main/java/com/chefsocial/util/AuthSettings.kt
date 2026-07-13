@@ -41,6 +41,23 @@ fun validateLogin(context: Context, email: String, password: String): Boolean {
         password == storedPassword
 }
 
+fun updatePassword(context: Context, currentPassword: String, newPassword: String): Boolean {
+    val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    val storedPassword = prefs.getString(KEY_AUTH_PASSWORD, "").orEmpty()
+    if (storedPassword != currentPassword || newPassword.length < 6) return false
+    prefs.edit().putString(KEY_AUTH_PASSWORD, newPassword).apply()
+    return true
+}
+
+fun clearAuthCredentials(context: Context) {
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .edit()
+        .remove(KEY_AUTH_EMAIL)
+        .remove(KEY_AUTH_PASSWORD)
+        .putBoolean(KEY_LOGGED_IN, false)
+        .apply()
+}
+
 fun hasRegisteredAccount(context: Context): Boolean =
     getStoredAuthEmail(context).isNotBlank()
 

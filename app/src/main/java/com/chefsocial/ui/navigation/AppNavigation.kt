@@ -27,6 +27,7 @@ import com.chefsocial.ui.screens.FollowListScreen
 import com.chefsocial.ui.screens.FollowListType
 import com.chefsocial.ui.screens.ProfileEditScreen
 import com.chefsocial.ui.screens.ProfileScreen
+import com.chefsocial.ui.screens.PrivacyPolicyScreen
 import com.chefsocial.ui.screens.ProfileSettingsScreen
 import com.chefsocial.ui.screens.RecipeDetailScreen
 import com.chefsocial.ui.screens.SavedScreen
@@ -53,6 +54,7 @@ object Routes {
     const val CREATE_FORUM_THREAD = "create_forum_thread"
     const val PROFILE_EDIT = "profile_edit"
     const val PROFILE_SETTINGS = "profile_settings"
+    const val PROFILE_PRIVACY = "profile_privacy"
     const val PROFILE_FOLLOWERS = "profile_followers"
     const val PROFILE_FOLLOWING = "profile_following"
 
@@ -198,7 +200,18 @@ fun AppNavigation(viewModel: ChefViewModel) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
+                onPrivacyPolicy = { navController.navigate(Routes.PROFILE_PRIVACY) },
+                onManageNews = { navController.navigate(Routes.CREATE_NEWS) },
+                onReplayOnboarding = {
+                    viewModel.resetOnboarding()
+                    navController.navigate(Routes.ONBOARDING) {
+                        popUpTo(Routes.FEED) { inclusive = false }
+                    }
+                },
             )
+        }
+        composable(Routes.PROFILE_PRIVACY) {
+            PrivacyPolicyScreen(onBack = { navController.popBackStack() })
         }
         composable(Routes.PROFILE_FOLLOWERS) {
             val currentUser by viewModel.currentUser.collectAsState()

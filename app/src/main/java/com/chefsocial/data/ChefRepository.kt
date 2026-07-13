@@ -1,5 +1,6 @@
 package com.chefsocial.data
 
+import com.chefsocial.model.FeedSortMode
 import com.chefsocial.model.RecipeCategory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -21,8 +22,15 @@ class ChefRepository(private val db: AppDatabase) {
 
     fun observeCurrentUser(): Flow<ChefEntity?> = chefDao.observeCurrentUser()
 
-    fun observeFeed(category: RecipeCategory = RecipeCategory.ALL): Flow<List<RecipeWithAuthor>> =
-        recipeDao.observeFeedByCategory(category.id)
+    fun observeFeed(
+        category: RecipeCategory = RecipeCategory.ALL,
+        sort: FeedSortMode = FeedSortMode.NEWEST,
+    ): Flow<List<RecipeWithAuthor>> =
+        if (sort == FeedSortMode.POPULAR) {
+            recipeDao.observePopularFeedByCategory(category.id)
+        } else {
+            recipeDao.observeFeedByCategory(category.id)
+        }
 
     fun observeLeaderboard() = chefDao.observeLeaderboard()
 
@@ -30,6 +38,9 @@ class ChefRepository(private val db: AppDatabase) {
 
     fun observeRecipesByAuthor(authorId: Long): Flow<List<RecipeWithAuthor>> =
         recipeDao.observeByAuthor(authorId)
+
+    suspend fun getRecipesForAuthor(authorId: Long): List<RecipeWithAuthor> =
+        recipeDao.getByAuthor(authorId)
 
     fun observeSavedRecipes(chefId: Long): Flow<List<RecipeWithAuthor>> =
         bookmarkDao.observeByChef(chefId).flatMapLatest { bookmarks ->

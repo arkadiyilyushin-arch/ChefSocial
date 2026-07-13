@@ -15,25 +15,69 @@ import com.chefsocial.data.MessageWithSender
 import com.chefsocial.data.NewsPostEntity
 import com.chefsocial.data.RecipeWithAuthor
 import com.chefsocial.data.remote.SyncRepository
+import com.chefsocial.model.AppThemeMode
+import com.chefsocial.model.FeedSortMode
+import com.chefsocial.model.MessagePrivacy
+import com.chefsocial.model.ProfileVisibility
 import com.chefsocial.model.RecipeCategory
-import com.chefsocial.notifications.showNotification
+import com.chefsocial.notifications.NotificationKind
+import com.chefsocial.notifications.shouldShowNotification
 import com.chefsocial.ui.localization.AppStrings
+import com.chefsocial.sync.updateBackgroundSync
 import com.chefsocial.util.AppLanguage
+import com.chefsocial.util.updatePassword
+import com.chefsocial.util.clearAuthCredentials
+import com.chefsocial.util.clearPhotoCache
+import com.chefsocial.util.clearUserPreferences
+import com.chefsocial.util.exportRecipesToJson
+import com.chefsocial.util.formatBytes
 import com.chefsocial.util.getAppLanguage
+import com.chefsocial.util.getAppThemeMode
+import com.chefsocial.util.getDefaultFeedCategory
+import com.chefsocial.util.getFeedSortMode
+import com.chefsocial.util.getLastSyncStats
+import com.chefsocial.util.getMessagePrivacy
+import com.chefsocial.util.getPhotoCacheSizeBytes
+import com.chefsocial.util.getProfileVisibility
 import com.chefsocial.util.getServerApiToken
 import com.chefsocial.util.getServerUrl
 import com.chefsocial.util.getStoredAuthEmail
+import com.chefsocial.util.isAutoSyncEnabled
+import com.chefsocial.util.isNotifyCommentsEnabled
+import com.chefsocial.util.isNotifyFollowersEnabled
+import com.chefsocial.util.isNotifyLikesEnabled
+import com.chefsocial.util.isNotifyMessagesEnabled
+import com.chefsocial.util.isNotifyNewsEnabled
+import com.chefsocial.util.isNotifyRecipesEnabled
+import com.chefsocial.util.isShowBookmarksPublic
+import com.chefsocial.util.areNotificationsEnabled
 import com.chefsocial.util.isAdminUser
 import com.chefsocial.util.isLoggedIn
 import com.chefsocial.util.isOnboardingCompleted
 import com.chefsocial.util.saveAuthCredentials
 import com.chefsocial.util.setAppLanguage
+import com.chefsocial.util.setAppThemeMode
+import com.chefsocial.util.setAutoSyncEnabled
+import com.chefsocial.util.setDefaultFeedCategory
+import com.chefsocial.util.setFeedSortMode
 import com.chefsocial.util.setLastSyncStats
 import com.chefsocial.util.setLoggedIn
+import com.chefsocial.util.setMessagePrivacy
+import com.chefsocial.util.setNotificationsEnabled
+import com.chefsocial.util.setNotifyCommentsEnabled
+import com.chefsocial.util.setNotifyFollowersEnabled
+import com.chefsocial.util.setNotifyLikesEnabled
+import com.chefsocial.util.setNotifyMessagesEnabled
+import com.chefsocial.util.setNotifyNewsEnabled
+import com.chefsocial.util.setNotifyRecipesEnabled
 import com.chefsocial.util.setOnboardingCompleted
+import com.chefsocial.util.setProfileVisibility
 import com.chefsocial.util.setServerApiToken
+import com.chefsocial.util.setShowBookmarksPublic
 import com.chefsocial.util.setServerUrl
+import com.chefsocial.util.shareRecipeExport
 import com.chefsocial.util.validateLogin
+import com.chefsocial.notifications.showNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -86,8 +130,52 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     private val _isSyncing = MutableStateFlow(false)
     val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
 
-    private val _feedCategory = MutableStateFlow(RecipeCategory.ALL)
+    private val _feedCategory = MutableStateFlow(getDefaultFeedCategory(application))
     val feedCategory: StateFlow<RecipeCategory> = _feedCategory.asStateFlow()
+
+    private val _feedSort = MutableStateFlow(getFeedSortMode(application))
+    val feedSort: StateFlow<FeedSortMode> = _feedSort.asStateFlow()
+
+    private val _themeMode = MutableStateFlow(getAppThemeMode(application))
+    val themeMode: StateFlow<AppThemeMode> = _themeMode.asStateFlow()
+
+    private val _autoSync = MutableStateFlow(isAutoSyncEnabled(application))
+    val autoSync: StateFlow<Boolean> = _autoSync.asStateFlow()
+
+    private val _notificationsEnabled = MutableStateFlow(areNotificationsEnabled(application))
+    val notificationsEnabled: StateFlow<Boolean> = _notificationsEnabled.asStateFlow()
+
+    private val _notifyFollowers = MutableStateFlow(isNotifyFollowersEnabled(application))
+    val notifyFollowers: StateFlow<Boolean> = _notifyFollowers.asStateFlow()
+
+    private val _notifyComments = MutableStateFlow(isNotifyCommentsEnabled(application))
+    val notifyComments: StateFlow<Boolean> = _notifyComments.asStateFlow()
+
+    private val _notifyLikes = MutableStateFlow(isNotifyLikesEnabled(application))
+    val notifyLikes: StateFlow<Boolean> = _notifyLikes.asStateFlow()
+
+    private val _notifyNews = MutableStateFlow(isNotifyNewsEnabled(application))
+    val notifyNews: StateFlow<Boolean> = _notifyNews.asStateFlow()
+
+    private val _notifyMessages = MutableStateFlow(isNotifyMessagesEnabled(application))
+    val notifyMessages: StateFlow<Boolean> = _notifyMessages.asStateFlow()
+
+    private val _notifyRecipes = MutableStateFlow(isNotifyRecipesEnabled(application))
+    val notifyRecipes: StateFlow<Boolean> = _notifyRecipes.asStateFlow()
+
+    private val _profileVisibility = MutableStateFlow(getProfileVisibility(application))
+    val profileVisibility: StateFlow<ProfileVisibility> = _profileVisibility.asStateFlow()
+
+    private val _messagePrivacy = MutableStateFlow(getMessagePrivacy(application))
+    val messagePrivacy: StateFlow<MessagePrivacy> = _messagePrivacy.asStateFlow()
+
+    private val _showBookmarksPublic = MutableStateFlow(isShowBookmarksPublic(application))
+    val showBookmarksPublic: StateFlow<Boolean> = _showBookmarksPublic.asStateFlow()
+
+    private val _settingsMessage = MutableStateFlow<String?>(null)
+    val settingsMessage: StateFlow<String?> = _settingsMessage.asStateFlow()
+
+    val authEmail: String = getStoredAuthEmail(application)
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -109,9 +197,10 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     val currentUser = repository.observeCurrentUser()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val feed = _feedCategory.flatMapLatest { category ->
-        repository.observeFeed(category)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val feed = combine(_feedCategory, _feedSort) { category, sort ->
+        repository.observeFeed(category, sort)
+    }.flatMapLatest { it }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val leaderboard = repository.observeLeaderboard()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -239,7 +328,130 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun setFeedCategory(category: RecipeCategory) { _feedCategory.value = category }
+    fun setFeedCategory(category: RecipeCategory) {
+        _feedCategory.value = category
+        setDefaultFeedCategory(getApplication(), category)
+    }
+
+    fun setFeedSort(sort: FeedSortMode) {
+        _feedSort.value = sort
+        setFeedSortMode(getApplication(), sort)
+    }
+
+    fun setThemeMode(mode: AppThemeMode) {
+        setAppThemeMode(getApplication(), mode)
+        _themeMode.value = mode
+    }
+
+    fun setAutoSync(enabled: Boolean) {
+        setAutoSyncEnabled(getApplication(), enabled)
+        _autoSync.value = enabled
+        updateBackgroundSync(getApplication())
+    }
+
+    fun setNotificationsMaster(enabled: Boolean) {
+        setNotificationsEnabled(getApplication(), enabled)
+        _notificationsEnabled.value = enabled
+    }
+
+    fun setNotifyFollowers(enabled: Boolean) {
+        setNotifyFollowersEnabled(getApplication(), enabled)
+        _notifyFollowers.value = enabled
+    }
+
+    fun setNotifyComments(enabled: Boolean) {
+        setNotifyCommentsEnabled(getApplication(), enabled)
+        _notifyComments.value = enabled
+    }
+
+    fun setNotifyLikes(enabled: Boolean) {
+        setNotifyLikesEnabled(getApplication(), enabled)
+        _notifyLikes.value = enabled
+    }
+
+    fun setNotifyNews(enabled: Boolean) {
+        setNotifyNewsEnabled(getApplication(), enabled)
+        _notifyNews.value = enabled
+    }
+
+    fun setNotifyMessages(enabled: Boolean) {
+        setNotifyMessagesEnabled(getApplication(), enabled)
+        _notifyMessages.value = enabled
+    }
+
+    fun setNotifyRecipes(enabled: Boolean) {
+        setNotifyRecipesEnabled(getApplication(), enabled)
+        _notifyRecipes.value = enabled
+    }
+
+    fun setProfileVisibilitySetting(visibility: ProfileVisibility) {
+        setProfileVisibility(getApplication(), visibility)
+        _profileVisibility.value = visibility
+    }
+
+    fun setMessagePrivacySetting(privacy: MessagePrivacy) {
+        setMessagePrivacy(getApplication(), privacy)
+        _messagePrivacy.value = privacy
+    }
+
+    fun setShowBookmarksPublicSetting(show: Boolean) {
+        setShowBookmarksPublic(getApplication(), show)
+        _showBookmarksPublic.value = show
+    }
+
+    fun getLastSyncTime(): Long = getLastSyncStats(getApplication()).first
+
+    fun getCacheSizeLabel(): String =
+        formatBytes(getPhotoCacheSizeBytes(getApplication()))
+
+    fun clearSettingsMessage() { _settingsMessage.value = null }
+
+    fun changePassword(current: String, newPassword: String, confirm: String, strings: AppStrings): Boolean {
+        if (newPassword != confirm) {
+            _settingsMessage.value = strings.authPasswordMismatch
+            return false
+        }
+        if (newPassword.length < 6) {
+            _settingsMessage.value = strings.authPasswordTooShort
+            return false
+        }
+        val ok = updatePassword(getApplication(), current, newPassword)
+        _settingsMessage.value = if (ok) strings.passwordChanged else strings.passwordChangeFailed
+        return ok
+    }
+
+    fun deleteAccount(strings: AppStrings, onDone: () -> Unit) {
+        clearAuthCredentials(getApplication())
+        clearUserPreferences(getApplication())
+        setLoggedIn(getApplication(), false)
+        _isLoggedIn.value = false
+        _settingsMessage.value = strings.deleteAccountDone
+        onDone()
+    }
+
+    fun clearPhotoCache(strings: AppStrings) {
+        clearPhotoCache(getApplication())
+        _settingsMessage.value = strings.cacheCleared
+    }
+
+    fun exportMyRecipes(strings: AppStrings) {
+        viewModelScope.launch {
+            val user = currentUser.value ?: return@launch
+            val recipes = repository.getRecipesForAuthor(user.id)
+            val file = exportRecipesToJson(getApplication(), recipes)
+            if (file == null) {
+                _settingsMessage.value = strings.exportEmpty
+            } else {
+                shareRecipeExport(getApplication(), file)
+                _settingsMessage.value = strings.exportDone
+            }
+        }
+    }
+
+    fun resetOnboarding() {
+        setOnboardingCompleted(getApplication(), false)
+        _onboardingCompleted.value = false
+    }
     fun setSearchQuery(query: String) { _searchQuery.value = query }
     fun setCommunicationTab(index: Int) { _communicationTab.value = index }
     fun setProfileTab(index: Int) { _profileTab.value = index }
@@ -314,7 +526,7 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
                 .onSuccess { result ->
                     setLastSyncStats(getApplication(), result.recipeCount, result.commentCount)
                     _syncMessage.value = "${strings.syncSuccess}: ${result.recipeCount} recipes"
-                    if (result.newRecipes > 0) {
+                    if (result.newRecipes > 0 && shouldShowNotification(getApplication(), NotificationKind.RECIPE)) {
                         showNotification(
                             getApplication(),
                             2001,
@@ -322,7 +534,7 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
                             strings.notificationNewRecipe,
                         )
                     }
-                    if (result.newComments > 0) {
+                    if (result.newComments > 0 && shouldShowNotification(getApplication(), NotificationKind.COMMENT)) {
                         showNotification(
                             getApplication(),
                             2002,

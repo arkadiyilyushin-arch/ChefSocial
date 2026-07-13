@@ -2,7 +2,11 @@ package com.chefsocial.ui.localization
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import com.chefsocial.model.AppThemeMode
+import com.chefsocial.model.FeedSortMode
+import com.chefsocial.model.MessagePrivacy
 import com.chefsocial.model.NewsType
+import com.chefsocial.model.ProfileVisibility
 import com.chefsocial.model.RecipeCategory
 import com.chefsocial.util.AppLanguage
 
@@ -149,6 +153,56 @@ data class AppStrings(
     val username: String,
     val noFollowers: String,
     val noFollowing: String,
+    val settingsAccount: String,
+    val settingsNotifications: String,
+    val settingsApp: String,
+    val settingsSync: String,
+    val settingsData: String,
+    val settingsAbout: String,
+    val settingsPrivacy: String,
+    val settingsAdmin: String,
+    val changePassword: String,
+    val currentPassword: String,
+    val newPassword: String,
+    val passwordChanged: String,
+    val passwordChangeFailed: String,
+    val deleteAccount: String,
+    val deleteAccountConfirm: String,
+    val deleteAccountDone: String,
+    val notificationsEnabled: String,
+    val notifyRecipesFeed: String,
+    val autoSync: String,
+    val lastSync: String,
+    val neverSynced: String,
+    val theme: String,
+    val themeLight: String,
+    val themeDark: String,
+    val themeSystem: String,
+    val feedSort: String,
+    val feedSortNewest: String,
+    val feedSortPopular: String,
+    val defaultCategory: String,
+    val profileVisibility: String,
+    val profilePublic: String,
+    val profileFollowersOnly: String,
+    val messagePrivacy: String,
+    val messagesEveryone: String,
+    val messagesFollowersOnly: String,
+    val showBookmarksPublic: String,
+    val storageUsed: String,
+    val clearCache: String,
+    val cacheCleared: String,
+    val exportRecipes: String,
+    val exportDone: String,
+    val exportEmpty: String,
+    val appVersion: String,
+    val privacyPolicy: String,
+    val privacyPolicyBody: String,
+    val contactSupport: String,
+    val manageNews: String,
+    val replayOnboarding: String,
+    val cancel: String,
+    val confirm: String,
 ) {
     fun categoryLabel(category: RecipeCategory): String = when (category) {
         RecipeCategory.ALL -> allCategories
@@ -166,6 +220,27 @@ data class AppStrings(
         NewsType.TIPS -> if (locale == AppLanguage.EN) "Tips" else "Советы"
         NewsType.UPDATE -> if (locale == AppLanguage.EN) "Update" else "Обновление"
         NewsType.GENERAL -> if (locale == AppLanguage.EN) "News" else "Новости"
+    }
+
+    fun themeLabel(mode: AppThemeMode): String = when (mode) {
+        AppThemeMode.LIGHT -> themeLight
+        AppThemeMode.DARK -> themeDark
+        AppThemeMode.SYSTEM -> themeSystem
+    }
+
+    fun feedSortLabel(mode: FeedSortMode): String = when (mode) {
+        FeedSortMode.NEWEST -> feedSortNewest
+        FeedSortMode.POPULAR -> feedSortPopular
+    }
+
+    fun profileVisibilityLabel(visibility: ProfileVisibility): String = when (visibility) {
+        ProfileVisibility.PUBLIC -> profilePublic
+        ProfileVisibility.FOLLOWERS_ONLY -> profileFollowersOnly
+    }
+
+    fun messagePrivacyLabel(privacy: MessagePrivacy): String = when (privacy) {
+        MessagePrivacy.EVERYONE -> messagesEveryone
+        MessagePrivacy.FOLLOWERS_ONLY -> messagesFollowersOnly
     }
 
     fun difficultyLabel(value: String): String = when (value) {
@@ -317,6 +392,56 @@ data class AppStrings(
             username = "Имя пользователя",
             noFollowers = "Пока нет подписчиков",
             noFollowing = "Вы ни на кого не подписаны",
+            settingsAccount = "Аккаунт",
+            settingsNotifications = "Уведомления",
+            settingsApp = "Приложение",
+            settingsSync = "Синхронизация",
+            settingsData = "Данные",
+            settingsAbout = "О приложении",
+            settingsPrivacy = "Приватность",
+            settingsAdmin = "Администрирование",
+            changePassword = "Сменить пароль",
+            currentPassword = "Текущий пароль",
+            newPassword = "Новый пароль",
+            passwordChanged = "Пароль изменён",
+            passwordChangeFailed = "Не удалось сменить пароль",
+            deleteAccount = "Удалить аккаунт",
+            deleteAccountConfirm = "Удалить аккаунт и выйти? Локальные данные останутся на устройстве.",
+            deleteAccountDone = "Аккаунт удалён",
+            notificationsEnabled = "Уведомления",
+            notifyRecipesFeed = "Новые рецепты в ленте",
+            autoSync = "Автосинхронизация",
+            lastSync = "Последняя синхронизация",
+            neverSynced = "Ещё не синхронизировалось",
+            theme = "Тема",
+            themeLight = "Светлая",
+            themeDark = "Тёмная",
+            themeSystem = "Как в системе",
+            feedSort = "Сортировка ленты",
+            feedSortNewest = "Новые",
+            feedSortPopular = "Популярные",
+            defaultCategory = "Категория ленты по умолчанию",
+            profileVisibility = "Видимость профиля",
+            profilePublic = "Всем",
+            profileFollowersOnly = "Только подписчикам",
+            messagePrivacy = "Кто может писать",
+            messagesEveryone = "Все",
+            messagesFollowersOnly = "Только подписчики",
+            showBookmarksPublic = "Показывать закладки в профиле",
+            storageUsed = "Кэш фото",
+            clearCache = "Очистить кэш",
+            cacheCleared = "Кэш очищен",
+            exportRecipes = "Экспорт рецептов",
+            exportDone = "Экспорт готов",
+            exportEmpty = "Нет рецептов для экспорта",
+            appVersion = "Версия",
+            privacyPolicy = "Политика конфиденциальности",
+            privacyPolicyBody = "Chefly хранит данные локально на вашем устройстве. Email и пароль используются только для входа в приложение. Фото рецептов и профиля сохраняются на устройстве и при синхронизации отправляются на указанный вами сервер. Мы не передаём данные третьим лицам без вашего согласия.",
+            contactSupport = "Написать в поддержку",
+            manageNews = "Управление новостями",
+            replayOnboarding = "Показать обучение снова",
+            cancel = "Отмена",
+            confirm = "Подтвердить",
         )
 
         val English = AppStrings(
@@ -461,6 +586,56 @@ data class AppStrings(
             username = "Username",
             noFollowers = "No followers yet",
             noFollowing = "Not following anyone yet",
+            settingsAccount = "Account",
+            settingsNotifications = "Notifications",
+            settingsApp = "App",
+            settingsSync = "Sync",
+            settingsData = "Data",
+            settingsAbout = "About",
+            settingsPrivacy = "Privacy",
+            settingsAdmin = "Administration",
+            changePassword = "Change password",
+            currentPassword = "Current password",
+            newPassword = "New password",
+            passwordChanged = "Password changed",
+            passwordChangeFailed = "Could not change password",
+            deleteAccount = "Delete account",
+            deleteAccountConfirm = "Delete account and log out? Local data will remain on this device.",
+            deleteAccountDone = "Account deleted",
+            notificationsEnabled = "Notifications",
+            notifyRecipesFeed = "New recipes in feed",
+            autoSync = "Auto sync",
+            lastSync = "Last sync",
+            neverSynced = "Not synced yet",
+            theme = "Theme",
+            themeLight = "Light",
+            themeDark = "Dark",
+            themeSystem = "System",
+            feedSort = "Feed sort",
+            feedSortNewest = "Newest",
+            feedSortPopular = "Popular",
+            defaultCategory = "Default feed category",
+            profileVisibility = "Profile visibility",
+            profilePublic = "Everyone",
+            profileFollowersOnly = "Followers only",
+            messagePrivacy = "Who can message you",
+            messagesEveryone = "Everyone",
+            messagesFollowersOnly = "Followers only",
+            showBookmarksPublic = "Show bookmarks on profile",
+            storageUsed = "Photo cache",
+            clearCache = "Clear cache",
+            cacheCleared = "Cache cleared",
+            exportRecipes = "Export recipes",
+            exportDone = "Export ready",
+            exportEmpty = "No recipes to export",
+            appVersion = "Version",
+            privacyPolicy = "Privacy policy",
+            privacyPolicyBody = "Chefly stores data locally on your device. Email and password are used only for app sign-in. Recipe and profile photos are stored on device and sent to your configured sync server. We do not share data with third parties without your consent.",
+            contactSupport = "Contact support",
+            manageNews = "Manage news",
+            replayOnboarding = "Show onboarding again",
+            cancel = "Cancel",
+            confirm = "Confirm",
         )
 
         fun forLanguage(language: AppLanguage): AppStrings =

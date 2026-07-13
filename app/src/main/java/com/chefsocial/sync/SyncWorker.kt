@@ -6,11 +6,14 @@ import androidx.work.WorkerParameters
 import com.chefsocial.data.AppDatabase
 import com.chefsocial.data.ChefRepository
 import com.chefsocial.data.remote.SyncRepository
+import com.chefsocial.notifications.NotificationKind
+import com.chefsocial.notifications.shouldShowNotification
 import com.chefsocial.notifications.showNotification
 import com.chefsocial.ui.localization.AppStrings
 import com.chefsocial.util.getAppLanguage
 import com.chefsocial.util.getServerApiToken
 import com.chefsocial.util.getServerUrl
+import com.chefsocial.util.isAutoSyncEnabled
 import com.chefsocial.util.setLastSyncStats
 
 class SyncWorker(
@@ -19,6 +22,7 @@ class SyncWorker(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
+        if (!isAutoSyncEnabled(applicationContext)) return Result.success()
         val db = AppDatabase.get(applicationContext)
         val repository = ChefRepository(db)
         val (beforeRecipes, beforeComments) = repository.counts()
@@ -32,7 +36,7 @@ class SyncWorker(
         return syncRepo.sync(beforeRecipes, beforeComments)
             .map { result ->
                 setLastSyncStats(applicationContext, result.recipeCount, result.commentCount)
-                if (result.newRecipes > 0) {
+                if (result.newRecipes > 0 && shouldShowNotification(applicationContext, NotificationKind.RECIPE)) {
                     showNotification(
                         applicationContext,
                         NOTIFICATION_RECIPE,
@@ -40,7 +44,7 @@ class SyncWorker(
                         strings.notificationNewRecipe,
                     )
                 }
-                if (result.newComments > 0) {
+                if (result.newComments > 0 && shouldShowNotification(applicationContext, NotificationKind.COMMENT)) {
                     showNotification(
                         applicationContext,
                         NOTIFICATION_COMMENT,

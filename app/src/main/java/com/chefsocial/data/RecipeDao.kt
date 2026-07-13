@@ -24,6 +24,18 @@ interface RecipeDao {
     fun observeFeedByCategory(category: String): Flow<List<RecipeWithAuthor>>
 
     @Transaction
+    @Query(
+        """
+        SELECT * FROM recipes
+        WHERE (:category = 'all' OR category = :category)
+        ORDER BY (
+            SELECT COUNT(*) FROM likes WHERE recipeId = recipes.id
+        ) DESC, createdAt DESC
+        """,
+    )
+    fun observePopularFeedByCategory(category: String): Flow<List<RecipeWithAuthor>>
+
+    @Transaction
     @Query("SELECT * FROM recipes WHERE authorId = :authorId ORDER BY createdAt DESC")
     fun observeByAuthor(authorId: Long): Flow<List<RecipeWithAuthor>>
 
@@ -54,6 +66,10 @@ interface RecipeDao {
     @Transaction
     @Query("SELECT * FROM recipes WHERE id = :id")
     suspend fun getWithAuthorById(id: Long): RecipeWithAuthor?
+
+    @Transaction
+    @Query("SELECT * FROM recipes WHERE authorId = :authorId ORDER BY createdAt DESC")
+    suspend fun getByAuthor(authorId: Long): List<RecipeWithAuthor>
 
     @Query("SELECT COUNT(*) FROM recipes WHERE authorId = :authorId")
     fun observeRecipeCount(authorId: Long): Flow<Int>
