@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -40,4 +41,15 @@ interface LikeDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(likes: List<LikeEntity>)
+
+    @Transaction
+    @Query(
+        """
+        SELECT * FROM recipes
+        INNER JOIN likes ON likes.recipeId = recipes.id
+        WHERE likes.chefId = :chefId
+        ORDER BY likes.id DESC
+        """,
+    )
+    fun observeLikedRecipes(chefId: Long): Flow<List<RecipeWithAuthor>>
 }

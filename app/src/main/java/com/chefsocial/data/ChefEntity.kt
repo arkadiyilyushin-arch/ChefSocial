@@ -18,5 +18,7 @@ data class ChefEntity(
     val specialty: String,
     val avatarEmoji: String,
     val avatarUrl: String = "",
+    val profileLink: String = "",
+    val pinnedRecipeId: Long = 0,
     val isCurrentUser: Boolean = false,
 )

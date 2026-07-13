@@ -3,6 +3,12 @@ package com.chefsocial.data
 import androidx.room.Embedded
 import androidx.room.Relation
 
+data class RecipeEngagement(
+    val recipeId: Long,
+    val likeCount: Int,
+    val commentCount: Int,
+)
+
 data class RecipeWithAuthor(
     @Embedded val recipe: RecipeEntity,
     @Relation(parentColumn = "authorId", entityColumn = "id")

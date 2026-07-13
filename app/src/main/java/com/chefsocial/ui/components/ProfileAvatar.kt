@@ -1,6 +1,7 @@
 package com.chefsocial.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,19 +16,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import com.chefsocial.ui.theme.CheflyTerracotta
 
 @Composable
 fun ProfileAvatar(
     emoji: String,
     avatarUrl: String = "",
     size: Int = 48,
+    showTerracottaRing: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val shape = CircleShape
+    val ringModifier = if (showTerracottaRing) {
+        Modifier.border(2.5.dp, CheflyTerracotta, shape)
+    } else {
+        Modifier
+    }
     if (avatarUrl.isNotBlank()) {
         Box(
             modifier = modifier
                 .size(size.dp)
+                .then(ringModifier)
                 .clip(shape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
@@ -40,7 +49,14 @@ fun ProfileAvatar(
             )
         }
     } else {
-        ChefAvatar(emoji = emoji, size = size, modifier = modifier)
+        Box(
+            modifier = modifier
+                .size(size.dp)
+                .then(ringModifier)
+                .clip(shape),
+        ) {
+            ChefAvatar(emoji = emoji, size = size)
+        }
     }
 }
 

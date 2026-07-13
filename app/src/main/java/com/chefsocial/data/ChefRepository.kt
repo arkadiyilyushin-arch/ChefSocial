@@ -173,6 +173,8 @@ class ChefRepository(private val db: AppDatabase) {
         specialty: String,
         avatarUrl: String = "",
         avatarEmoji: String = "",
+        profileLink: String = "",
+        pinnedRecipeId: Long? = null,
     ) {
         val chef = chefDao.getById(id) ?: return
         chefDao.updateProfileFull(
@@ -182,7 +184,32 @@ class ChefRepository(private val db: AppDatabase) {
             specialty = specialty.trim(),
             avatarUrl = avatarUrl.trim().ifBlank { chef.avatarUrl },
             avatarEmoji = avatarEmoji.ifBlank { chef.avatarEmoji },
+            profileLink = profileLink.trim(),
+            pinnedRecipeId = pinnedRecipeId ?: chef.pinnedRecipeId,
         )
+    }
+
+    suspend fun setPinnedRecipe(chefId: Long, recipeId: Long) {
+        chefDao.updatePinnedRecipe(chefId, recipeId)
+    }
+
+    fun observeLikedRecipes(chefId: Long): Flow<List<RecipeWithAuthor>> =
+        likeDao.observeLikedRecipes(chefId)
+
+    fun observeRecipeEngagement(authorId: Long): Flow<List<RecipeEngagement>> =
+        recipeDao.observeEngagementByAuthor(authorId)
+
+    suspend fun getOrCreateConversation(userId: Long, otherId: Long): Long {
+        var conversation = conversationDao.findBetween(userId, otherId)
+        if (conversation == null) {
+            return conversationDao.insert(
+                ConversationEntity(
+                    participant1Id = minOf(userId, otherId),
+                    participant2Id = maxOf(userId, otherId),
+                ),
+            )
+        }
+        return conversation.id
     }
 
     suspend fun publishNews(

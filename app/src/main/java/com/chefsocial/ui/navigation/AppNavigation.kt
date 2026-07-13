@@ -324,6 +324,9 @@ fun AppNavigation(viewModel: ChefViewModel) {
                 chefId = id,
                 onBack = { navController.popBackStack() },
                 onRecipeClick = { recipeId -> navController.navigate(Routes.recipe(recipeId)) },
+                onMessage = { conversationId ->
+                    navController.navigate(Routes.messageThread(conversationId))
+                },
             )
         }
     }

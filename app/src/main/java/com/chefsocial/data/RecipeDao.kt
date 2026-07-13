@@ -73,4 +73,15 @@ interface RecipeDao {
 
     @Query("SELECT COUNT(*) FROM recipes WHERE authorId = :authorId")
     fun observeRecipeCount(authorId: Long): Flow<Int>
+
+    @Query(
+        """
+        SELECT recipes.id AS recipeId,
+            (SELECT COUNT(*) FROM likes WHERE recipeId = recipes.id) AS likeCount,
+            (SELECT COUNT(*) FROM comments WHERE recipeId = recipes.id) AS commentCount
+        FROM recipes
+        WHERE authorId = :authorId
+        """,
+    )
+    fun observeEngagementByAuthor(authorId: Long): Flow<List<RecipeEngagement>>
 }

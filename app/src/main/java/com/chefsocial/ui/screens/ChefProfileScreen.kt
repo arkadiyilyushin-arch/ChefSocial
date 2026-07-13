@@ -1,36 +1,34 @@
 package com.chefsocial.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.chefsocial.ui.components.ProfileAvatar
-import com.chefsocial.ui.components.RecipeCard
+import com.chefsocial.ui.components.ProfileHeader
+import com.chefsocial.ui.components.ProfileRecipeGrid
+import com.chefsocial.ui.components.ProfileTabRow
 import com.chefsocial.ui.localization.LocalAppStrings
+import com.chefsocial.ui.theme.CheflyCard
+import com.chefsocial.util.shareProfile
 import com.chefsocial.ui.viewmodel.ChefViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,27 +38,51 @@ fun ChefProfileScreen(
     chefId: Long,
     onBack: () -> Unit,
     onRecipeClick: (Long) -> Unit,
+    onMessage: (Long) -> Unit,
 ) {
     val strings = LocalAppStrings.current
+    val context = LocalContext.current
     val currentUser by viewModel.currentUser.collectAsState()
     val stats by viewModel.observeChefStats(chefId).collectAsState()
+    val chefStats = stats ?: return
     val recipes by viewModel.observeRecipesByAuthor(chefId).collectAsState()
+    val engagement by viewModel.observeRecipeEngagement(chefId).collectAsState()
     val isFollowing by viewModel
         .observeFollowState(currentUser?.id ?: 0L, chefId)
         .collectAsState()
+    val leaderboardRank = remember(chefId, viewModel.leaderboard.collectAsState().value) {
+        viewModel.getLeaderboardRank(chefId)
+    }
 
-    val chef = stats?.chef ?: return
     val isOwnProfile = currentUser?.id == chefId
+    val canViewContent = isOwnProfile || viewModel.canViewChefProfile(chefId, isFollowing)
+    val showMessageButton = !isOwnProfile && currentUser != null
+
+    val pinnedRecipe = remember(chefStats.chef.pinnedRecipeId, recipes) {
+        if (chefStats.chef.pinnedRecipeId > 0) {
+            recipes.find { it.recipe.id == chefStats.chef.pinnedRecipeId }
+        } else {
+            null
+        }
+    }
 
     Scaffold(
+        containerColor = CheflyCard,
         topBar = {
             TopAppBar(
-                title = { Text(chef.name) },
+                title = {
+                    Text(
+                        text = chefStats.chef.username,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.back)
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = CheflyCard),
             )
         },
     ) { padding ->
@@ -68,113 +90,52 @@ fun ChefProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    ProfileAvatar(
-                        emoji = chef.avatarEmoji,
-                        avatarUrl = chef.avatarUrl,
-                        size = 80,
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = chef.name, style = MaterialTheme.typography.headlineMedium)
-                    Text(
-                        text = "@${chef.username}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = chef.specialty,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = chef.bio,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                    ) {
-                        StatItem(strings.recipesCount, stats?.recipeCount ?: 0)
-                        StatItem(strings.followers, stats?.followerCount ?: 0)
-                        StatItem(strings.following, stats?.followingCount ?: 0)
-                        StatItem(strings.totalLikes, stats?.totalLikes ?: 0)
-                    }
-
-                    if (!isOwnProfile) {
+                ProfileHeader(
+                    stats = chefStats,
+                    leaderboardRank = leaderboardRank,
+                    pinnedRecipe = pinnedRecipe,
+                    isOwnProfile = isOwnProfile,
+                    isFollowing = isFollowing,
+                    canViewContent = canViewContent,
+                    showMessageButton = showMessageButton,
+                    onEditProfile = null,
+                    onSettings = null,
+                    onFollowers = null,
+                    onFollowing = null,
+                    onFollowToggle = {
                         currentUser?.let { user ->
-                            Spacer(modifier = Modifier.height(16.dp))
-                            if (isFollowing) {
-                                OutlinedButton(
-                                    onClick = {
-                                        viewModel.toggleFollow(user.id, chefId, true)
-                                    },
-                                ) {
-                                    Text("Отписаться")
-                                }
-                            } else {
-                                Button(
-                                    onClick = {
-                                        viewModel.toggleFollow(user.id, chefId, false)
-                                    },
-                                ) {
-                                    Text("Подписаться")
-                                }
-                            }
+                            viewModel.toggleFollow(user.id, chefId, isFollowing)
                         }
+                    },
+                    onMessage = {
+                        viewModel.startConversationWith(chefId, onMessage)
+                    },
+                    onShare = { shareProfile(context, chefStats.chef) },
+                    onPinnedRecipeClick = onRecipeClick,
+                )
+            }
+            if (canViewContent) {
+                item {
+                    ProfileTabRow(
+                        selectedTab = 0,
+                        showSavedTab = false,
+                        showLikedTab = false,
+                        onSelectTab = {},
+                    )
+                }
+                item {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        ProfileRecipeGrid(
+                            recipes = recipes,
+                            engagement = engagement,
+                            emptyMessage = strings.noRecipesYet,
+                            onRecipeClick = onRecipeClick,
+                        )
                     }
                 }
             }
-
-            item {
-                Text(
-                    text = "Рецепты (${recipes.size})",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-
-            items(recipes, key = { it.recipe.id }) { recipe ->
-                val interactions by viewModel
-                    .observeRecipeInteractions(recipe.recipe.id, currentUser?.id ?: 0L)
-                    .collectAsState()
-
-                RecipeCard(
-                    recipe = recipe,
-                    likeCount = interactions.likeCount,
-                    commentCount = interactions.commentCount,
-                    isLiked = interactions.isLiked,
-                    onLikeClick = {
-                        currentUser?.let { user ->
-                            viewModel.toggleLike(recipe.recipe.id, user.id, interactions.isLiked)
-                        }
-                    },
-                    onClick = { onRecipeClick(recipe.recipe.id) },
-                    onAuthorClick = {},
-                )
-            }
         }
-    }
-}
-
-@Composable
-private fun StatItem(label: String, value: Int) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = value.toString(), style = MaterialTheme.typography.titleLarge)
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }

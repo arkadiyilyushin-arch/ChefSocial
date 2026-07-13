@@ -329,6 +329,8 @@ class SyncRepository(
         specialty = specialty,
         avatarEmoji = avatarEmoji,
         avatarUrl = avatarUrl,
+        profileLink = profileLink,
+        pinnedRecipeId = pinnedRecipeId,
         isCurrentUser = isCurrentUser,
     )
 
@@ -340,6 +342,8 @@ class SyncRepository(
         specialty = specialty,
         avatarEmoji = avatarEmoji,
         avatarUrl = avatarUrl,
+        profileLink = profileLink,
+        pinnedRecipeId = pinnedRecipeId,
         isCurrentUser = isCurrentUser,
     )
 

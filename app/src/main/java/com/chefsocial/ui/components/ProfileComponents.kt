@@ -1,0 +1,590 @@
+package com.chefsocial.ui.components
+
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.GridOn
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.chefsocial.data.ChefEntity
+import com.chefsocial.data.ChefWithStats
+import com.chefsocial.data.RecipeEngagement
+import com.chefsocial.data.RecipeWithAuthor
+import com.chefsocial.ui.localization.LocalAppStrings
+import com.chefsocial.ui.theme.CheflyCard
+import com.chefsocial.ui.theme.CheflyTerracotta
+
+@Composable
+fun ProfileHeader(
+    stats: ChefWithStats,
+    leaderboardRank: Int?,
+    pinnedRecipe: RecipeWithAuthor?,
+    isOwnProfile: Boolean,
+    isFollowing: Boolean,
+    canViewContent: Boolean,
+    showMessageButton: Boolean,
+    onEditProfile: (() -> Unit)?,
+    onSettings: (() -> Unit)?,
+    onFollowers: (() -> Unit)?,
+    onFollowing: (() -> Unit)?,
+    onFollowToggle: (() -> Unit)?,
+    onMessage: (() -> Unit)?,
+    onShare: () -> Unit,
+    onPinnedRecipeClick: ((Long) -> Unit)?,
+) {
+    val strings = LocalAppStrings.current
+    val chef = stats.chef
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(28.dp),
+        ) {
+            ProfileAvatar(
+                emoji = chef.avatarEmoji,
+                avatarUrl = chef.avatarUrl,
+                size = 86,
+                showTerracottaRing = true,
+            )
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                ProfileStat(value = stats.recipeCount, label = strings.recipesCount)
+                ProfileStat(
+                    value = stats.followerCount,
+                    label = strings.followers,
+                    onClick = onFollowers,
+                )
+                ProfileStat(
+                    value = stats.followingCount,
+                    label = strings.following,
+                    onClick = onFollowing,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = chef.name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            if (leaderboardRank != null && leaderboardRank <= 3) {
+                TopChefBadge(rank = leaderboardRank)
+            }
+        }
+
+        Text(
+            text = "@${chef.username}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        if (chef.specialty.isNotBlank()) {
+            Text(
+                text = chef.specialty,
+                style = MaterialTheme.typography.bodySmall,
+                color = CheflyTerracotta,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+
+        Text(
+            text = strings.profileMiniStats(stats.recipeCount, stats.totalLikes),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp),
+        )
+
+        Text(
+            text = "♥ ${stats.totalLikes} ${strings.totalLikes}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        if (chef.bio.isNotBlank()) {
+            Text(
+                text = chef.bio,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+
+        if (chef.profileLink.isNotBlank()) {
+            ProfileLinkText(link = chef.profileLink)
+        }
+
+        if (pinnedRecipe != null && canViewContent) {
+            Spacer(modifier = Modifier.height(10.dp))
+            PinnedRecipeCard(
+                recipe = pinnedRecipe,
+                onClick = { onPinnedRecipeClick?.invoke(pinnedRecipe.recipe.id) },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        if (!canViewContent) {
+            Text(
+                text = strings.profilePrivateHint,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        } else if (isOwnProfile) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                OutlinedButton(
+                    onClick = { onEditProfile?.invoke() },
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(
+                        strings.editProfile,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+                OutlinedButton(
+                    onClick = { onSettings?.invoke() },
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(
+                        strings.settings,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = onShare,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(strings.shareProfile)
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (isFollowing) {
+                    OutlinedButton(
+                        onClick = { onFollowToggle?.invoke() },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(strings.unsubscribe)
+                    }
+                } else {
+                    Button(
+                        onClick = { onFollowToggle?.invoke() },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(strings.subscribe)
+                    }
+                }
+                if (showMessageButton) {
+                    OutlinedButton(
+                        onClick = { onMessage?.invoke() },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(strings.message)
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = onShare,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(strings.shareProfile)
+            }
+        }
+    }
+}
+
+@Composable
+fun TopChefBadge(rank: Int) {
+    val strings = LocalAppStrings.current
+    Surface(
+        shape = RoundedCornerShape(6.dp),
+        color = CheflyTerracotta.copy(alpha = 0.15f),
+    ) {
+        Text(
+            text = strings.topChefBadge(rank),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = CheflyTerracotta,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+@Composable
+private fun ProfileLinkText(link: String) {
+    val context = LocalContext.current
+    val display = link.removePrefix("https://").removePrefix("http://").removePrefix("www.")
+    Text(
+        text = display,
+        style = MaterialTheme.typography.bodySmall.copy(
+            color = CheflyTerracotta,
+            textDecoration = TextDecoration.Underline,
+        ),
+        modifier = Modifier
+            .padding(top = 4.dp)
+            .clickable {
+                val uri = if (link.startsWith("http")) link else "https://$link"
+                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+            },
+    )
+}
+
+@Composable
+fun PinnedRecipeCard(
+    recipe: RecipeWithAuthor,
+    onClick: () -> Unit,
+) {
+    val strings = LocalAppStrings.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .border(1.dp, CheflyTerracotta.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xFFF0EBE6)),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (recipe.recipe.imageUrl.isNotBlank()) {
+                RecipeImage(
+                    model = recipe.recipe.imageUrl,
+                    contentDescription = recipe.recipe.title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+            } else {
+                Text(recipe.author.avatarEmoji, style = MaterialTheme.typography.titleLarge)
+            }
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.PushPin,
+                    contentDescription = null,
+                    tint = CheflyTerracotta,
+                    modifier = Modifier.size(14.dp),
+                )
+                Text(
+                    text = strings.pinnedRecipe,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = CheflyTerracotta,
+                    modifier = Modifier.padding(start = 4.dp),
+                )
+            }
+            Text(
+                text = recipe.recipe.title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+fun ProfileStat(
+    value: Int,
+    label: String,
+    onClick: (() -> Unit)? = null,
+) {
+    Column(
+        modifier = Modifier
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = value.toString(),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+fun ProfileTabRow(
+    selectedTab: Int,
+    showSavedTab: Boolean,
+    showLikedTab: Boolean,
+    onSelectTab: (Int) -> Unit,
+) {
+    val strings = LocalAppStrings.current
+    val tabs = buildList {
+        add(0 to Icons.Default.GridOn to strings.profileTabRecipes)
+        if (showSavedTab) add(1 to Icons.Outlined.BookmarkBorder to strings.profileTabSaved)
+        if (showLikedTab) add(2 to Icons.Outlined.FavoriteBorder to strings.profileTabLiked)
+    }
+    val selectedIndex = tabs.indexOfFirst { it.first == selectedTab }.coerceAtLeast(0)
+    val activeTab = tabs.getOrNull(selectedIndex)?.first ?: 0
+
+    TabRow(
+        selectedTabIndex = selectedIndex,
+        containerColor = CheflyCard,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        indicator = { tabPositions ->
+            if (selectedIndex < tabPositions.size) {
+                SecondaryIndicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedIndex]),
+                    color = CheflyTerracotta,
+                    height = 2.dp,
+                )
+            }
+        },
+        divider = { HorizontalDivider(color = Color(0xFFE8E0DA)) },
+    ) {
+        tabs.forEach { (index, iconLabel) ->
+            val (icon, label) = iconLabel
+            Tab(
+                selected = activeTab == index,
+                onClick = { onSelectTab(index) },
+                icon = {
+                    Icon(
+                        icon,
+                        contentDescription = label,
+                        tint = if (activeTab == index) CheflyTerracotta else Color(0xFFB0A8A2),
+                    )
+                },
+            )
+        }
+    }
+}
+
+@Composable
+fun ProfileRecipeGrid(
+    recipes: List<RecipeWithAuthor>,
+    engagement: Map<Long, RecipeEngagement>,
+    emptyMessage: String,
+    emptyActionLabel: String? = null,
+    onEmptyAction: (() -> Unit)? = null,
+    onRecipeClick: (Long) -> Unit,
+) {
+    if (recipes.isEmpty()) {
+        ProfileEmptyState(
+            message = emptyMessage,
+            actionLabel = emptyActionLabel,
+            onAction = onEmptyAction,
+        )
+    } else {
+        Column {
+            recipes.chunked(3).forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    row.forEach { recipe ->
+                        val stats = engagement[recipe.recipe.id]
+                        RecipeGridCell(
+                            recipe = recipe,
+                            likeCount = stats?.likeCount ?: 0,
+                            commentCount = stats?.commentCount ?: 0,
+                            onClick = { onRecipeClick(recipe.recipe.id) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    repeat(3 - row.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+                Spacer(modifier = Modifier.height(2.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileEmptyState(
+    message: String,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(48.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                Icons.Default.GridOn,
+                contentDescription = null,
+                tint = CheflyTerracotta.copy(alpha = 0.5f),
+                modifier = Modifier.size(48.dp),
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            if (actionLabel != null && onAction != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(onClick = onAction) {
+                    Text(actionLabel)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RecipeGridCell(
+    recipe: RecipeWithAuthor,
+    likeCount: Int,
+    commentCount: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val imageUrl = recipe.recipe.imageUrl
+
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
+            .background(Color(0xFFF0EBE6))
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (imageUrl.isNotBlank()) {
+            RecipeImage(
+                model = imageUrl,
+                contentDescription = recipe.recipe.title,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+        } else {
+            Text(
+                text = recipe.author.avatarEmoji,
+                style = MaterialTheme.typography.headlineMedium,
+            )
+        }
+
+        if (likeCount > 0 || commentCount > 0) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .background(Color.Black.copy(alpha = 0.45f))
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (likeCount > 0) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Icon(
+                            Icons.Default.Favorite,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(12.dp),
+                        )
+                        Text(
+                            text = likeCount.toString(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                        )
+                    }
+                }
+                if (commentCount > 0) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Icon(
+                            Icons.Outlined.ChatBubbleOutline,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(12.dp),
+                        )
+                        Text(
+                            text = commentCount.toString(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

@@ -13,6 +13,7 @@ import com.chefsocial.data.ForumPostWithAuthor
 import com.chefsocial.data.ForumThreadWithAuthor
 import com.chefsocial.data.MessageWithSender
 import com.chefsocial.data.NewsPostEntity
+import com.chefsocial.data.RecipeEngagement
 import com.chefsocial.data.RecipeWithAuthor
 import com.chefsocial.data.remote.SyncRepository
 import com.chefsocial.model.AppThemeMode
@@ -84,7 +85,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -97,6 +98,8 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     private val chefStatsStates = mutableMapOf<Long, StateFlow<ChefWithStats?>>()
     private val recipesByAuthorStates = mutableMapOf<Long, StateFlow<List<RecipeWithAuthor>>>()
     private val savedRecipesStates = mutableMapOf<Long, StateFlow<List<RecipeWithAuthor>>>()
+    private val likedRecipesStates = mutableMapOf<Long, StateFlow<List<RecipeWithAuthor>>>()
+    private val engagementStates = mutableMapOf<Long, StateFlow<Map<Long, RecipeEngagement>>>()
     private val interactionStates = mutableMapOf<String, StateFlow<RecipeInteractions>>()
     private val bookmarkStates = mutableMapOf<String, StateFlow<Boolean>>()
     private val followStates = mutableMapOf<String, StateFlow<Boolean>>()
@@ -295,6 +298,41 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
             repository.observeSavedRecipes(chefId)
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
         }
+
+    fun observeLikedRecipes(chefId: Long): StateFlow<List<RecipeWithAuthor>> =
+        likedRecipesStates.getOrPut(chefId) {
+            repository.observeLikedRecipes(chefId)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        }
+
+    fun observeRecipeEngagement(authorId: Long): StateFlow<Map<Long, RecipeEngagement>> =
+        engagementStates.getOrPut(authorId) {
+            repository.observeRecipeEngagement(authorId)
+                .map { list -> list.associateBy { it.recipeId } }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+        }
+
+    fun getLeaderboardRank(chefId: Long): Int? {
+        val index = leaderboard.value.indexOfFirst { it.chef.id == chefId }
+        return if (index >= 0) index + 1 else null
+    }
+
+    fun startConversationWith(recipientId: Long, onReady: (Long) -> Unit) {
+        viewModelScope.launch {
+            val userId = currentUser.value?.id ?: return@launch
+            val conversationId = repository.getOrCreateConversation(userId, recipientId)
+            onReady(conversationId)
+        }
+    }
+
+    fun canViewChefProfile(chefId: Long, isFollowing: Boolean): Boolean {
+        val user = currentUser.value ?: return true
+        if (chefId != user.id) return true
+        return when (profileVisibility.value) {
+            ProfileVisibility.PUBLIC -> true
+            ProfileVisibility.FOLLOWERS_ONLY -> isFollowing
+        }
+    }
 
     fun observeRecipeInteractions(
         recipeId: Long,
@@ -611,6 +649,8 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
         specialty: String,
         avatarUrl: String? = null,
         avatarEmoji: String? = null,
+        profileLink: String = "",
+        pinnedRecipeId: Long? = null,
         onSuccess: () -> Unit = {},
     ) {
         viewModelScope.launch {
@@ -631,6 +671,8 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
                 specialty = specialty,
                 avatarUrl = finalAvatarUrl ?: "",
                 avatarEmoji = avatarEmoji ?: "",
+                profileLink = profileLink,
+                pinnedRecipeId = pinnedRecipeId,
             )
             onSuccess()
         }

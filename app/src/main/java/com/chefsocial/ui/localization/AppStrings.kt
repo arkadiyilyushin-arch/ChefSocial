@@ -144,7 +144,16 @@ data class AppStrings(
     val settings: String,
     val profileTabRecipes: String,
     val profileTabSaved: String,
+    val profileTabLiked: String,
     val totalLikes: String,
+    val shareProfile: String,
+    val message: String,
+    val pinnedRecipe: String,
+    val profileLink: String,
+    val pinRecipe: String,
+    val publishFirstRecipe: String,
+    val noLikedRecipes: String,
+    val profilePrivateHint: String,
     val editPhoto: String,
     val logout: String,
     val selectEmoji: String,
@@ -242,6 +251,16 @@ data class AppStrings(
         MessagePrivacy.EVERYONE -> messagesEveryone
         MessagePrivacy.FOLLOWERS_ONLY -> messagesFollowersOnly
     }
+
+    fun topChefBadge(rank: Int): String =
+        if (locale == AppLanguage.EN) "Top $rank" else "Топ-$rank"
+
+    fun profileMiniStats(recipes: Int, likes: Int): String =
+        if (locale == AppLanguage.EN) {
+            "$recipes recipes · $likes likes"
+        } else {
+            "$recipes рецептов · $likes лайков"
+        }
 
     fun difficultyLabel(value: String): String = when (value) {
         "Легко", "Easy" -> easy
@@ -383,7 +402,16 @@ data class AppStrings(
             settings = "Настройки",
             profileTabRecipes = "Рецепты",
             profileTabSaved = "Закладки",
+            profileTabLiked = "Понравилось",
             totalLikes = "Лайки",
+            shareProfile = "Поделиться профилем",
+            message = "Написать",
+            pinnedRecipe = "Закреплённый рецепт",
+            profileLink = "Ссылка в профиле",
+            pinRecipe = "Закрепить рецепт",
+            publishFirstRecipe = "Опубликовать первый рецепт",
+            noLikedRecipes = "Вы ещё не лайкнули рецепты",
+            profilePrivateHint = "Профиль доступен только подписчикам",
             editPhoto = "Изменить фото",
             logout = "Выйти",
             selectEmoji = "Эмодзи аватара",
@@ -577,7 +605,16 @@ data class AppStrings(
             settings = "Settings",
             profileTabRecipes = "Recipes",
             profileTabSaved = "Saved",
+            profileTabLiked = "Liked",
             totalLikes = "Likes",
+            shareProfile = "Share profile",
+            message = "Message",
+            pinnedRecipe = "Pinned recipe",
+            profileLink = "Profile link",
+            pinRecipe = "Pin recipe",
+            publishFirstRecipe = "Publish your first recipe",
+            noLikedRecipes = "You haven't liked any recipes yet",
+            profilePrivateHint = "This profile is for followers only",
             editPhoto = "Change photo",
             logout = "Log out",
             selectEmoji = "Avatar emoji",

@@ -59,12 +59,15 @@ fun ProfileEditScreen(
     val currentUser by viewModel.currentUser.collectAsState()
     val user = currentUser ?: return
     val context = LocalContext.current
+    val myRecipes by viewModel.observeRecipesByAuthor(user.id).collectAsState()
 
     var name by rememberSaveable { mutableStateOf(user.name) }
     var bio by rememberSaveable { mutableStateOf(user.bio) }
     var specialty by rememberSaveable { mutableStateOf(user.specialty) }
     var avatarUrl by rememberSaveable { mutableStateOf(user.avatarUrl) }
     var avatarEmoji by rememberSaveable { mutableStateOf(user.avatarEmoji) }
+    var profileLink by rememberSaveable { mutableStateOf(user.profileLink) }
+    var pinnedRecipeId by rememberSaveable { mutableStateOf(user.pinnedRecipeId) }
     var cameraUri by rememberSaveable { mutableStateOf<Uri?>(null) }
 
     LaunchedEffect(user) {
@@ -73,6 +76,8 @@ fun ProfileEditScreen(
         specialty = user.specialty
         avatarUrl = user.avatarUrl
         avatarEmoji = user.avatarEmoji
+        profileLink = user.profileLink
+        pinnedRecipeId = user.pinnedRecipeId
     }
 
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -163,6 +168,36 @@ fun ProfileEditScreen(
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 4,
             )
+            OutlinedTextField(
+                value = profileLink,
+                onValueChange = { profileLink = it },
+                label = { Text(strings.profileLink) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                placeholder = { Text("instagram.com/username") },
+            )
+            if (myRecipes.isNotEmpty()) {
+                Text(strings.pinRecipe, style = MaterialTheme.typography.labelLarge)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    FilterChip(
+                        selected = pinnedRecipeId == 0L,
+                        onClick = { pinnedRecipeId = 0L },
+                        label = { Text("—") },
+                    )
+                    myRecipes.forEach { recipe ->
+                        FilterChip(
+                            selected = pinnedRecipeId == recipe.recipe.id,
+                            onClick = { pinnedRecipeId = recipe.recipe.id },
+                            label = { Text(recipe.recipe.title, maxLines = 1) },
+                        )
+                    }
+                }
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = {
@@ -173,6 +208,8 @@ fun ProfileEditScreen(
                         specialty = specialty,
                         avatarUrl = avatarUrl,
                         avatarEmoji = avatarEmoji,
+                        profileLink = profileLink,
+                        pinnedRecipeId = pinnedRecipeId,
                         onSuccess = onSaved,
                     )
                 },

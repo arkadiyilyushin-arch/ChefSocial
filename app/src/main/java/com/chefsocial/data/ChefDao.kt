@@ -63,7 +63,9 @@ interface ChefDao {
     @Query(
         """
         UPDATE chefs
-        SET name = :name, bio = :bio, specialty = :specialty, avatarUrl = :avatarUrl, avatarEmoji = :avatarEmoji
+        SET name = :name, bio = :bio, specialty = :specialty,
+            avatarUrl = :avatarUrl, avatarEmoji = :avatarEmoji,
+            profileLink = :profileLink, pinnedRecipeId = :pinnedRecipeId
         WHERE id = :id
         """,
     )
@@ -74,7 +76,12 @@ interface ChefDao {
         specialty: String,
         avatarUrl: String,
         avatarEmoji: String,
+        profileLink: String,
+        pinnedRecipeId: Long,
     )
+
+    @Query("UPDATE chefs SET pinnedRecipeId = :recipeId WHERE id = :id")
+    suspend fun updatePinnedRecipe(id: Long, recipeId: Long)
 
     @Query(
         """

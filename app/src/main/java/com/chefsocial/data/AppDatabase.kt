@@ -21,7 +21,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ForumThreadEntity::class,
         ForumPostEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -48,7 +48,15 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "chef_social.db",
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                    .addMigrations(
+                        MIGRATION_1_2,
+                        MIGRATION_2_3,
+                        MIGRATION_3_4,
+                        MIGRATION_4_5,
+                        MIGRATION_5_6,
+                        MIGRATION_6_7,
+                        MIGRATION_7_8,
+                    )
                     .build()
                     .also { instance = it }
             }
@@ -75,6 +83,17 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 recreateSocialTables(db)
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                if (!db.hasColumn("chefs", "profileLink")) {
+                    db.execSQL("ALTER TABLE chefs ADD COLUMN profileLink TEXT NOT NULL DEFAULT ''")
+                }
+                if (!db.hasColumn("chefs", "pinnedRecipeId")) {
+                    db.execSQL("ALTER TABLE chefs ADD COLUMN pinnedRecipeId INTEGER NOT NULL DEFAULT 0")
+                }
             }
         }
 
