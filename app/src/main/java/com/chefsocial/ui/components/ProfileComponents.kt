@@ -52,7 +52,6 @@ import com.chefsocial.data.ChefWithStats
 import com.chefsocial.data.RecipeEngagement
 import com.chefsocial.data.RecipeWithAuthor
 import com.chefsocial.ui.localization.LocalAppStrings
-import androidx.compose.material3.MaterialTheme
 import com.chefsocial.ui.theme.CheflyTerracotta
 import com.chefsocial.ui.theme.cheflyOutlinedButtonColors
 
