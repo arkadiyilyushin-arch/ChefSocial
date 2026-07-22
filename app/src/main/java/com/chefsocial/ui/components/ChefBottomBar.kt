@@ -15,7 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.ui.theme.CheflyCard
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme
 import com.chefsocial.ui.theme.CheflyTerracotta
 
 data class BottomNavItem(
@@ -38,7 +39,7 @@ fun ChefBottomBar(
     )
 
     NavigationBar(
-        containerColor = CheflyCard,
+        containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = NavigationBarDefaults.Elevation,
     ) {
         items.forEach { item ->

@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.chefsocial.ui.components.CheflyBackground
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.ui.theme.CheflyCard
+import com.chefsocial.ui.theme.cheflyCardColors
 import com.chefsocial.ui.theme.CheflyTerracotta
 import kotlinx.coroutines.launch
 
@@ -59,7 +59,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
             Card(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = CheflyCard),
+                colors = cheflyCardColors(),
             ) {
                 HorizontalPager(
                     state = pagerState,

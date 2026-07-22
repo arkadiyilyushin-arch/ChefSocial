@@ -35,7 +35,7 @@ import com.chefsocial.data.ForumThreadWithAuthor
 import com.chefsocial.ui.components.ProfileAvatar
 import com.chefsocial.ui.components.ChefBottomBar
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.ui.theme.CheflyCard
+import com.chefsocial.ui.theme.cheflyCardColors
 import com.chefsocial.ui.theme.CheflyTerracotta
 import com.chefsocial.ui.viewmodel.ChefViewModel
 import java.text.SimpleDateFormat
@@ -77,7 +77,7 @@ fun CommunicationScreen(
         bottomBar = { ChefBottomBar(currentRoute = currentRoute, onSelect = onSelectTab) },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            TabRow(selectedTabIndex = tab, containerColor = CheflyCard) {
+            TabRow(selectedTabIndex = tab, containerColor = MaterialTheme.colorScheme.surface) {
                 Tab(
                     selected = tab == 0,
                     onClick = { viewModel.setCommunicationTab(0) },
@@ -151,7 +151,7 @@ private fun ConversationCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CheflyCard),
+        colors = cheflyCardColors(),
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -228,7 +228,7 @@ private fun ForumThreadCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CheflyCard),
+        colors = cheflyCardColors(),
     ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(

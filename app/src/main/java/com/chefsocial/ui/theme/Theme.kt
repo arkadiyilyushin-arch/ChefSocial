@@ -26,7 +26,9 @@ private val CheflyLightColors = lightColorScheme(
     surface = CheflyCard,
     onSurface = CheflyBrown,
     surfaceVariant = CheflyInput,
-    onSurfaceVariant = Color(0xFF7A6558),
+    onSurfaceVariant = Color(0xFF6B5344),
+    outline = Color(0xFFB8A89A),
+    outlineVariant = Color(0xFFD8CEC6),
     error = CheflyError,
     onError = Color.White,
 )
@@ -46,7 +48,9 @@ private val CheflyDarkColors = darkColorScheme(
     surface = DarkSurface,
     onSurface = Color(0xFFF5E6DC),
     surfaceVariant = Color(0xFF4A3025),
-    onSurfaceVariant = Color(0xFFC4A99A),
+    onSurfaceVariant = Color(0xFFD4B8A8),
+    outline = Color(0xFF8A6A58),
+    outlineVariant = Color(0xFF5C4030),
     error = CheflyError,
     onError = Color.White,
 )

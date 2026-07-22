@@ -46,7 +46,7 @@ import com.chefsocial.model.NewsType
 import com.chefsocial.ui.components.ChefBottomBar
 import com.chefsocial.ui.components.RecipeImage
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.ui.theme.CheflyCard
+import com.chefsocial.ui.theme.cheflyCardColors
 import com.chefsocial.ui.theme.CheflyTerracotta
 import com.chefsocial.ui.viewmodel.ChefViewModel
 import java.text.SimpleDateFormat
@@ -158,7 +158,7 @@ private fun NewsCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = CheflyCard),
+        colors = cheflyCardColors(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
@@ -186,6 +186,7 @@ private fun NewsCard(
                     text = post.title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 if (post.summary.isNotBlank()) {
                     Text(

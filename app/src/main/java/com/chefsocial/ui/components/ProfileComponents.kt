@@ -52,8 +52,9 @@ import com.chefsocial.data.ChefWithStats
 import com.chefsocial.data.RecipeEngagement
 import com.chefsocial.data.RecipeWithAuthor
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.ui.theme.CheflyCard
+import androidx.compose.material3.MaterialTheme
 import com.chefsocial.ui.theme.CheflyTerracotta
+import com.chefsocial.ui.theme.cheflyOutlinedButtonColors
 
 @Composable
 fun ProfileHeader(
@@ -193,6 +194,7 @@ fun ProfileHeader(
                 OutlinedButton(
                     onClick = { onEditProfile?.invoke() },
                     modifier = Modifier.weight(1f),
+                    colors = cheflyOutlinedButtonColors(),
                 ) {
                     Text(
                         strings.editProfile,
@@ -203,6 +205,7 @@ fun ProfileHeader(
                 OutlinedButton(
                     onClick = { onSettings?.invoke() },
                     modifier = Modifier.weight(1f),
+                    colors = cheflyOutlinedButtonColors(),
                 ) {
                     Text(
                         strings.settings,
@@ -215,6 +218,7 @@ fun ProfileHeader(
             OutlinedButton(
                 onClick = onShare,
                 modifier = Modifier.fillMaxWidth(),
+                colors = cheflyOutlinedButtonColors(),
             ) {
                 Text(strings.shareProfile)
             }
@@ -227,6 +231,7 @@ fun ProfileHeader(
                     OutlinedButton(
                         onClick = { onFollowToggle?.invoke() },
                         modifier = Modifier.weight(1f),
+                        colors = cheflyOutlinedButtonColors(),
                     ) {
                         Text(strings.unsubscribe)
                     }
@@ -242,6 +247,7 @@ fun ProfileHeader(
                     OutlinedButton(
                         onClick = { onMessage?.invoke() },
                         modifier = Modifier.weight(1f),
+                        colors = cheflyOutlinedButtonColors(),
                     ) {
                         Text(strings.message)
                     }
@@ -251,6 +257,7 @@ fun ProfileHeader(
             OutlinedButton(
                 onClick = onShare,
                 modifier = Modifier.fillMaxWidth(),
+                colors = cheflyOutlinedButtonColors(),
             ) {
                 Text(strings.shareProfile)
             }
@@ -400,7 +407,7 @@ fun ProfileTabRow(
 
     TabRow(
         selectedTabIndex = selectedIndex,
-        containerColor = CheflyCard,
+        containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
         indicator = { tabPositions ->
             if (selectedIndex < tabPositions.size) {

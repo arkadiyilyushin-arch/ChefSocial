@@ -27,7 +27,6 @@ import com.chefsocial.ui.components.ProfileHeader
 import com.chefsocial.ui.components.ProfileRecipeGrid
 import com.chefsocial.ui.components.ProfileTabRow
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.ui.theme.CheflyCard
 import com.chefsocial.util.shareProfile
 import com.chefsocial.ui.viewmodel.ChefViewModel
 
@@ -67,7 +66,7 @@ fun ChefProfileScreen(
     }
 
     Scaffold(
-        containerColor = CheflyCard,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -82,7 +81,7 @@ fun ChefProfileScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.back)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = CheflyCard),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
             )
         },
     ) { padding ->

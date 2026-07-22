@@ -26,6 +26,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -48,12 +49,11 @@ import androidx.compose.ui.unit.sp
 import com.chefsocial.ui.components.CheflyBackground
 import com.chefsocial.ui.localization.LocalAppStrings
 import com.chefsocial.ui.theme.CheflyBrown
-import com.chefsocial.ui.theme.CheflyCard
 import com.chefsocial.ui.theme.CheflyError
-import com.chefsocial.ui.theme.CheflyInput
 import com.chefsocial.ui.theme.CheflyLink
-import com.chefsocial.ui.theme.CheflyTabInactive
 import com.chefsocial.ui.theme.CheflyTerracotta
+import com.chefsocial.ui.theme.cheflyCardColors
+import com.chefsocial.ui.theme.cheflyTextFieldColors
 
 private enum class AuthTab { LOGIN, REGISTER }
 
@@ -110,7 +110,7 @@ fun AuthScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(32.dp),
-                colors = CardDefaults.cardColors(containerColor = CheflyCard),
+                colors = cheflyCardColors(),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             ) {
                 Column(
@@ -242,7 +242,7 @@ private fun AuthTabRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(CheflyTabInactive, androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant, androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
             .padding(4.dp),
     ) {
         AuthTabChip(
@@ -270,7 +270,7 @@ private fun AuthTabChip(
     Box(
         modifier = modifier
             .background(
-                color = if (selected) CheflyCard else Color.Transparent,
+                color = if (selected) MaterialTheme.colorScheme.surface else Color.Transparent,
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
             )
             .clickable(onClick = onClick)
@@ -279,7 +279,7 @@ private fun AuthTabChip(
     ) {
         Text(
             text = text,
-            color = if (selected) CheflyBrown else Color(0xFF8A9AA8),
+            color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
         )
     }
@@ -299,8 +299,14 @@ private fun CheflyTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = Modifier.fillMaxWidth(),
-        label = { Text(label) },
-        leadingIcon = { Icon(leadingIcon, contentDescription = null, tint = CheflyBrown.copy(alpha = 0.6f)) },
+        label = { Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+        leadingIcon = {
+            Icon(
+                leadingIcon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
         trailingIcon = if (isPassword && onTogglePassword != null) {
             {
                 IconButton(onClick = onTogglePassword) {
@@ -325,12 +331,6 @@ private fun CheflyTextField(
         },
         singleLine = true,
         shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = CheflyInput,
-            unfocusedContainerColor = CheflyInput,
-            disabledContainerColor = CheflyInput,
-            focusedBorderColor = Color.Transparent,
-            unfocusedBorderColor = Color.Transparent,
-        ),
+        colors = cheflyTextFieldColors(),
     )
 }

@@ -29,7 +29,8 @@ import com.chefsocial.ui.components.ProfileHeader
 import com.chefsocial.ui.components.ProfileRecipeGrid
 import com.chefsocial.ui.components.ProfileTabRow
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.ui.theme.CheflyCard
+import androidx.compose.material3.MaterialTheme
+import com.chefsocial.ui.theme.cheflyCardColors
 import com.chefsocial.util.shareProfile
 import com.chefsocial.ui.viewmodel.ChefViewModel
 
@@ -88,7 +89,7 @@ fun ProfileScreen(
     }
 
     Scaffold(
-        containerColor = CheflyCard,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -108,7 +109,7 @@ fun ProfileScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CheflyCard,
+                    containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
                     actionIconContentColor = MaterialTheme.colorScheme.onSurface,
                 ),

@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.chefsocial.data.ChefEntity
 import com.chefsocial.ui.components.ProfileAvatar
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.ui.theme.CheflyCard
+import com.chefsocial.ui.theme.cheflyCardColors
 import com.chefsocial.ui.viewmodel.ChefViewModel
 
 enum class FollowListType { Followers, Following }
@@ -98,7 +98,7 @@ private fun FollowChefCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CheflyCard),
+        colors = cheflyCardColors(),
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
