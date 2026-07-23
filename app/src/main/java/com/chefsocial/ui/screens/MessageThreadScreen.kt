@@ -1,6 +1,7 @@
 package com.chefsocial.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import com.chefsocial.ui.components.CheflyTopBarWithBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -21,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -50,6 +50,7 @@ fun MessageThreadScreen(
     viewModel: ChefViewModel,
     conversationId: Long,
     onBack: () -> Unit,
+    onProfileClick: (Long) -> Unit,
 ) {
     val strings = LocalAppStrings.current
     val messages by viewModel.observeMessages(conversationId).collectAsState()
@@ -64,13 +65,18 @@ fun MessageThreadScreen(
 
     CheflyScaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(otherChef?.name ?: "…") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.back)
-                    }
+            CheflyTopBarWithBack(
+                title = {
+                    Text(
+                        text = otherChef?.name ?: "…",
+                        modifier = if (otherId > 0L) {
+                            Modifier.clickable { onProfileClick(otherId) }
+                        } else {
+                            Modifier
+                        },
+                    )
                 },
+                onBack = onBack,
             )
         },
         bottomBar = {

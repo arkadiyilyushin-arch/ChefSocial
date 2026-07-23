@@ -1,5 +1,6 @@
 package com.chefsocial.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import com.chefsocial.ui.components.CheflyTopBarWithBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
@@ -21,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,6 +47,7 @@ fun ForumThreadScreen(
     viewModel: ChefViewModel,
     threadId: Long,
     onBack: () -> Unit,
+    onAuthorClick: (Long) -> Unit,
 ) {
     val strings = LocalAppStrings.current
     val thread by viewModel.observeForumThread(threadId).collectAsState()
@@ -56,13 +57,9 @@ fun ForumThreadScreen(
 
     CheflyScaffold(
         topBar = {
-            TopAppBar(
+            CheflyTopBarWithBack(
                 title = { Text(strings.forum) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.back)
-                    }
-                },
+                onBack = onBack,
             )
         },
         bottomBar = {
@@ -119,7 +116,9 @@ fun ForumThreadScreen(
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(vertical = 8.dp),
+                        modifier = Modifier
+                            .padding(vertical = 8.dp)
+                            .clickable { onAuthorClick(topic.author.id) },
                     ) {
                         ChefAvatar(emoji = topic.author.avatarEmoji, size = 36)
                         Text(topic.author.name, style = MaterialTheme.typography.labelLarge)
@@ -133,7 +132,7 @@ fun ForumThreadScreen(
                     )
                 }
                 items(replies, key = { it.post.id }) { reply ->
-                    ForumReplyItem(reply)
+                    ForumReplyItem(reply = reply, onAuthorClick = onAuthorClick)
                 }
             }
         }
@@ -141,10 +140,17 @@ fun ForumThreadScreen(
 }
 
 @Composable
-private fun ForumReplyItem(reply: ForumPostWithAuthor) {
+private fun ForumReplyItem(
+    reply: ForumPostWithAuthor,
+    onAuthorClick: (Long) -> Unit,
+) {
     val date = SimpleDateFormat("d MMM, HH:mm", Locale.getDefault()).format(Date(reply.post.createdAt))
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable { onAuthorClick(reply.author.id) },
+        ) {
             ChefAvatar(emoji = reply.author.avatarEmoji, size = 32)
             Text(reply.author.name, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
             Text(date, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

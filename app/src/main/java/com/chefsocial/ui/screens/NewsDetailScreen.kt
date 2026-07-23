@@ -10,7 +10,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import com.chefsocial.ui.components.CheflyBackButton
+import com.chefsocial.ui.theme.cheflySurfaceTopBarColors
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -52,11 +53,8 @@ fun NewsDetailScreen(
         topBar = {
             TopAppBar(
                 title = { Text(strings.newsTitle) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.back)
-                    }
-                },
+                navigationIcon = { CheflyBackButton(onClick = onBack) },
+                colors = cheflySurfaceTopBarColors(),
             )
         },
     ) { padding ->

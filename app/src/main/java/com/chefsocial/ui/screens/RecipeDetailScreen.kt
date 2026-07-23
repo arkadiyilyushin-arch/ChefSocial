@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
@@ -25,11 +25,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.chefsocial.ui.components.ChefAvatar
+import com.chefsocial.ui.components.CheflyTopBarWithBack
 import com.chefsocial.ui.components.RecipeImage
 import androidx.compose.ui.platform.LocalContext
 import com.chefsocial.ui.localization.LocalAppStrings
@@ -57,6 +57,7 @@ fun RecipeDetailScreen(
     recipeId: Long,
     onBack: () -> Unit,
     onAuthorClick: (Long) -> Unit,
+    onMessage: (Long) -> Unit,
 ) {
     val strings = LocalAppStrings.current
     val context = LocalContext.current
@@ -87,13 +88,9 @@ fun RecipeDetailScreen(
 
     CheflyScaffold(
         topBar = {
-            TopAppBar(
+            CheflyTopBarWithBack(
                 title = { Text(strings.recipeDetail) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.back)
-                    }
-                },
+                onBack = onBack,
                 actions = {
                     IconButton(onClick = { shareRecipe(context, item, strings) }) {
                         Icon(Icons.Default.Share, contentDescription = strings.share)
@@ -159,7 +156,7 @@ fun RecipeDetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Text(item.author.avatarEmoji, style = MaterialTheme.typography.titleLarge)
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(item.author.name, style = MaterialTheme.typography.titleMedium)
                             Text(
                                 text = item.author.specialty,
@@ -167,6 +164,16 @@ fun RecipeDetailScreen(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                         }
+                    }
+                }
+
+                if (currentUser != null && currentUser?.id != item.author.id) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedButton(
+                        onClick = { onMessage(item.author.id) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(strings.message)
                     }
                 }
 

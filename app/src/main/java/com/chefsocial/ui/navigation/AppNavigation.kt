@@ -12,14 +12,15 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.chefsocial.ui.screens.AuthScreen
 import com.chefsocial.ui.screens.ChefProfileScreen
-import com.chefsocial.ui.screens.CommunicationScreen
 import com.chefsocial.ui.screens.CreateForumThreadScreen
 import com.chefsocial.ui.screens.CreateNewsScreen
 import com.chefsocial.ui.screens.CreateRecipeScreen
 import com.chefsocial.ui.screens.FeedScreen
+import com.chefsocial.ui.screens.ForumScreen
 import com.chefsocial.ui.screens.ForumThreadScreen
 import com.chefsocial.ui.screens.LeaderboardScreen
 import com.chefsocial.ui.screens.MessageThreadScreen
+import com.chefsocial.ui.screens.MessagesScreen
 import com.chefsocial.ui.screens.NewsDetailScreen
 import com.chefsocial.ui.screens.NewsScreen
 import com.chefsocial.ui.screens.OnboardingScreen
@@ -32,14 +33,17 @@ import com.chefsocial.ui.screens.ProfileSettingsScreen
 import com.chefsocial.ui.screens.RecipeDetailScreen
 import com.chefsocial.ui.screens.SavedScreen
 import com.chefsocial.ui.screens.SearchScreen
+import com.chefsocial.ui.screens.WelcomeActionScreen
 import com.chefsocial.ui.viewmodel.ChefViewModel
 
 object Routes {
     const val AUTH = "auth"
     const val ONBOARDING = "onboarding"
+    const val WELCOME_ACTIONS = "welcome_actions"
     const val FEED = "feed"
     const val NEWS = "news"
-    const val COMMUNICATION = "communication"
+    const val MESSAGES = "messages"
+    const val FORUM = "forum"
     const val SEARCH = "search"
     const val CREATE = "create"
     const val PROFILE = "profile"
@@ -68,7 +72,8 @@ object Routes {
 private val BOTTOM_TABS = setOf(
     Routes.FEED,
     Routes.NEWS,
-    Routes.COMMUNICATION,
+    Routes.MESSAGES,
+    Routes.FORUM,
     Routes.PROFILE,
 )
 
@@ -113,8 +118,27 @@ fun AppNavigation(viewModel: ChefViewModel) {
             OnboardingScreen(
                 onComplete = {
                     viewModel.completeOnboarding()
-                    navController.navigate(Routes.FEED) {
+                    navController.navigate(Routes.WELCOME_ACTIONS) {
                         popUpTo(Routes.ONBOARDING) { inclusive = true }
+                    }
+                },
+            )
+        }
+        composable(Routes.WELCOME_ACTIONS) {
+            WelcomeActionScreen(
+                onCreateRecipe = {
+                    navController.navigate(Routes.CREATE) {
+                        popUpTo(Routes.WELCOME_ACTIONS) { inclusive = true }
+                    }
+                },
+                onDiscoverChefs = {
+                    navController.navigate(Routes.LEADERBOARD) {
+                        popUpTo(Routes.WELCOME_ACTIONS) { inclusive = true }
+                    }
+                },
+                onSkip = {
+                    navController.navigateTab(Routes.FEED) {
+                        popUpTo(Routes.WELCOME_ACTIONS) { inclusive = true }
                     }
                 },
             )
@@ -140,12 +164,19 @@ fun AppNavigation(viewModel: ChefViewModel) {
                 onCreateNews = { navController.navigate(Routes.CREATE_NEWS) },
             )
         }
-        composable(Routes.COMMUNICATION) {
-            CommunicationScreen(
+        composable(Routes.MESSAGES) {
+            MessagesScreen(
                 viewModel = viewModel,
-                currentRoute = Routes.COMMUNICATION,
+                currentRoute = Routes.MESSAGES,
                 onSelectTab = selectTab,
                 onConversationClick = { id -> navController.navigate(Routes.messageThread(id)) },
+            )
+        }
+        composable(Routes.FORUM) {
+            ForumScreen(
+                viewModel = viewModel,
+                currentRoute = Routes.FORUM,
+                onSelectTab = selectTab,
                 onForumThreadClick = { id -> navController.navigate(Routes.forumThread(id)) },
                 onCreateThread = { navController.navigate(Routes.CREATE_FORUM_THREAD) },
             )
@@ -155,6 +186,7 @@ fun AppNavigation(viewModel: ChefViewModel) {
                 viewModel = viewModel,
                 currentRoute = Routes.SEARCH,
                 onSelectTab = selectTab,
+                onBack = { navController.popBackStack() },
                 onRecipeClick = { id -> navController.navigate(Routes.recipe(id)) },
                 onChefClick = { id -> navController.navigate(Routes.chef(id)) },
             )
@@ -289,6 +321,7 @@ fun AppNavigation(viewModel: ChefViewModel) {
                 viewModel = viewModel,
                 conversationId = id,
                 onBack = { navController.popBackStack() },
+                onProfileClick = { chefId -> navController.navigate(Routes.chef(chefId)) },
             )
         }
         composable(
@@ -300,6 +333,7 @@ fun AppNavigation(viewModel: ChefViewModel) {
                 viewModel = viewModel,
                 threadId = id,
                 onBack = { navController.popBackStack() },
+                onAuthorClick = { chefId -> navController.navigate(Routes.chef(chefId)) },
             )
         }
         composable(
@@ -312,6 +346,11 @@ fun AppNavigation(viewModel: ChefViewModel) {
                 recipeId = id,
                 onBack = { navController.popBackStack() },
                 onAuthorClick = { chefId -> navController.navigate(Routes.chef(chefId)) },
+                onMessage = { chefId ->
+                    viewModel.startConversationWith(chefId) { conversationId ->
+                        navController.navigate(Routes.messageThread(conversationId))
+                    }
+                },
             )
         }
         composable(
@@ -332,12 +371,16 @@ fun AppNavigation(viewModel: ChefViewModel) {
     }
 }
 
-private fun NavHostController.navigateTab(route: String) {
+private fun NavHostController.navigateTab(
+    route: String,
+    builder: androidx.navigation.NavOptionsBuilder.() -> Unit = {},
+) {
     if (route !in BOTTOM_TABS) {
-        navigate(route)
+        navigate(route, builder)
         return
     }
     navigate(route) {
+        builder()
         popUpTo(Routes.FEED) { saveState = true }
         launchSingleTop = true
         restoreState = true

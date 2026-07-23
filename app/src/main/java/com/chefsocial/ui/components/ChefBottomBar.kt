@@ -3,6 +3,7 @@ package com.chefsocial.ui.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
@@ -34,7 +35,8 @@ fun ChefBottomBar(
     val items = listOf(
         BottomNavItem("feed", { strings.feed }, Icons.Default.Home),
         BottomNavItem("news", { strings.news }, Icons.Default.Article),
-        BottomNavItem("communication", { strings.communication }, Icons.Default.Chat),
+        BottomNavItem("messages", { strings.messages }, Icons.Default.Chat),
+        BottomNavItem("forum", { strings.forum }, Icons.Default.Forum),
         BottomNavItem("profile", { strings.profile }, Icons.Default.Person),
     )
 

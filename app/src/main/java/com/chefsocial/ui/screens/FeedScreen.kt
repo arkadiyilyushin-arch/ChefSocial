@@ -13,8 +13,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,7 +35,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.chefsocial.data.RecipeWithAuthor
@@ -61,6 +66,7 @@ fun FeedScreen(
     val isSyncing by viewModel.isSyncing.collectAsState()
     val syncMessage by viewModel.syncMessage.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var menuExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(syncMessage) {
         syncMessage?.let {
@@ -77,15 +83,37 @@ fun FeedScreen(
                     IconButton(onClick = onSearch) {
                         Icon(Icons.Default.Search, contentDescription = strings.search)
                     }
-                    IconButton(onClick = onLeaderboard) {
-                        Icon(Icons.Default.EmojiEvents, contentDescription = strings.leaderboard)
-                    }
                     if (isSyncing) {
-                        CircularProgressIndicator(modifier = Modifier.padding(end = 16.dp), strokeWidth = 2.dp)
-                    } else {
-                        IconButton(onClick = { viewModel.syncWithServer(strings) }) {
-                            Icon(Icons.Default.Sync, contentDescription = strings.sync)
-                        }
+                        CircularProgressIndicator(modifier = Modifier.padding(end = 8.dp), strokeWidth = 2.dp)
+                    }
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = strings.more)
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(strings.leaderboard) },
+                            onClick = {
+                                menuExpanded = false
+                                onLeaderboard()
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.EmojiEvents, contentDescription = null)
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(strings.sync) },
+                            enabled = !isSyncing,
+                            onClick = {
+                                menuExpanded = false
+                                viewModel.syncWithServer(strings)
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.Sync, contentDescription = null)
+                            },
+                        )
                     }
                 },
                 colors = cheflyPrimaryTopBarColors(),

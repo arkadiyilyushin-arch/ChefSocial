@@ -11,7 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import com.chefsocial.ui.components.CheflyBackButton
+import com.chefsocial.ui.theme.cheflySurfaceTopBarColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,11 +44,8 @@ fun LeaderboardScreen(
         topBar = {
             TopAppBar(
                 title = { Text(strings.leaderboard) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.back)
-                    }
-                },
+                navigationIcon = { CheflyBackButton(onClick = onBack) },
+                colors = cheflySurfaceTopBarColors(),
             )
         },
     ) { padding ->

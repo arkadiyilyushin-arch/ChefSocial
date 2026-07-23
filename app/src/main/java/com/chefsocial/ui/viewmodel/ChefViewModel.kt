@@ -184,9 +184,6 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    private val _communicationTab = MutableStateFlow(0)
-    val communicationTab: StateFlow<Int> = _communicationTab.asStateFlow()
-
     private val _profileTab = MutableStateFlow(0)
     val profileTab: StateFlow<Int> = _profileTab.asStateFlow()
 
@@ -492,7 +489,6 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
         _onboardingCompleted.value = false
     }
     fun setSearchQuery(query: String) { _searchQuery.value = query }
-    fun setCommunicationTab(index: Int) { _communicationTab.value = index }
     fun setProfileTab(index: Int) { _profileTab.value = index }
 
     fun observeFollowers(chefId: Long): StateFlow<List<ChefEntity>> =

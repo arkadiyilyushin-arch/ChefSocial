@@ -14,8 +14,8 @@ android {
         applicationId = "com.chefsocial"
         minSdk = 26
         targetSdk = 36
-        versionCode = 23
-        versionName = "1.6.8"
+        versionCode = 24
+        versionName = "1.6.9"
         buildConfigField("String", "DEFAULT_SERVER_URL", "\"https://api.chefsocial.local/\"")
     }
 

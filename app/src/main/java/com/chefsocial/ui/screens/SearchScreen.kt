@@ -21,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,6 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.chefsocial.ui.components.ChefAvatar
 import com.chefsocial.ui.components.ChefBottomBar
+import com.chefsocial.ui.components.CheflyTopBarWithBack
+import com.chefsocial.ui.localization.LocalAppStrings
 import com.chefsocial.ui.viewmodel.ChefViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,15 +39,22 @@ fun SearchScreen(
     viewModel: ChefViewModel,
     currentRoute: String,
     onSelectTab: (String) -> Unit,
+    onBack: () -> Unit,
     onRecipeClick: (Long) -> Unit,
     onChefClick: (Long) -> Unit,
 ) {
+    val strings = LocalAppStrings.current
     val searchQuery by viewModel.searchQuery.collectAsState()
     val recipes by viewModel.searchRecipes.collectAsState()
     val chefs by viewModel.searchChefs.collectAsState()
 
     CheflyScaffold(
-        topBar = { TopAppBar(title = { Text("Поиск") }) },
+        topBar = {
+            CheflyTopBarWithBack(
+                title = { Text(strings.searchTitle) },
+                onBack = onBack,
+            )
+        },
         bottomBar = { ChefBottomBar(currentRoute = currentRoute, onSelect = onSelectTab) },
     ) { padding ->
         Column(
@@ -59,11 +67,11 @@ fun SearchScreen(
                 value = searchQuery,
                 onValueChange = viewModel::setSearchQuery,
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Рецепты, ингредиенты, повара…") },
+                placeholder = { Text(strings.searchPlaceholder) },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
                         IconButton(onClick = { viewModel.setSearchQuery("") }) {
-                            Icon(Icons.Default.Clear, contentDescription = "Очистить")
+                            Icon(Icons.Default.Clear, contentDescription = strings.clear)
                         }
                     }
                 },
@@ -73,7 +81,7 @@ fun SearchScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             if (searchQuery.isBlank()) {
-                EmptyState(message = "Найдите рецепт или повара\nпо имени или ингредиенту")
+                EmptyState(message = strings.searchEmpty)
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 16.dp),
@@ -82,7 +90,7 @@ fun SearchScreen(
                     if (chefs.isNotEmpty()) {
                         item {
                             Text(
-                                text = "Повара",
+                                text = strings.chefs,
                                 style = MaterialTheme.typography.titleMedium,
                             )
                         }
@@ -112,7 +120,7 @@ fun SearchScreen(
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Рецепты",
+                                text = strings.recipes,
                                 style = MaterialTheme.typography.titleMedium,
                             )
                         }
@@ -138,7 +146,7 @@ fun SearchScreen(
 
                     if (chefs.isEmpty() && recipes.isEmpty()) {
                         item {
-                            EmptyState(message = "Ничего не найдено по запросу «$searchQuery»")
+                            EmptyState(message = "${strings.searchNothing}: «$searchQuery»")
                         }
                     }
                 }
