@@ -24,6 +24,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.chefsocial.data.NewsPostEntity
 import com.chefsocial.model.NewsType
 import com.chefsocial.ui.localization.LocalAppStrings
@@ -182,7 +183,7 @@ fun NewsArticleContent(
             text = post.body,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
-            lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.15f,
+            lineHeight = (MaterialTheme.typography.bodyLarge.lineHeight.value * 1.15f).sp,
             modifier = Modifier.fillMaxWidth(),
         )
     }

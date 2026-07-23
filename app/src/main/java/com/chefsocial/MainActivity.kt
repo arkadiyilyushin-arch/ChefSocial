@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        scheduleBackgroundSync(applicationContext)
+        runCatching { scheduleBackgroundSync(applicationContext) }
 
         setContent {
             val viewModel: ChefViewModel = viewModel()
