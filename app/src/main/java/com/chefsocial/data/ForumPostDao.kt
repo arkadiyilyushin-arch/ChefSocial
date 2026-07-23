@@ -7,11 +7,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
-data class ThreadReplyCount(
-    val threadId: Long,
-    val replyCount: Int,
-)
-
 @Dao
 interface ForumPostDao {
     @Transaction

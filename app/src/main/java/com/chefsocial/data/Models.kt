@@ -1,7 +1,13 @@
 package com.chefsocial.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Relation
+
+data class ThreadReplyCount(
+    @ColumnInfo(name = "threadId") val threadId: Long,
+    @ColumnInfo(name = "replyCount") val replyCount: Int,
+)
 
 data class RecipeEngagement(
     val recipeId: Long,

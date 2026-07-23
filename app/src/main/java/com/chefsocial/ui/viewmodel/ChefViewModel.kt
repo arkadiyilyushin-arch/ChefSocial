@@ -202,16 +202,18 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun syncPrivacyPrefsToEntity() {
-        val user = repository.getCurrentUser() ?: return
-        val visibility = getProfileVisibility(getApplication())
-        val messagePrivacy = getMessagePrivacy(getApplication())
-        val showBookmarks = isShowBookmarksPublic(getApplication())
-        repository.updatePrivacySettings(
-            id = user.id,
-            profileVisibility = visibility.id,
-            messagePrivacy = messagePrivacy.id,
-            showBookmarksPublic = showBookmarks,
-        )
+        runCatching {
+            val user = repository.getCurrentUser() ?: return
+            val visibility = getProfileVisibility(getApplication())
+            val messagePrivacy = getMessagePrivacy(getApplication())
+            val showBookmarks = isShowBookmarksPublic(getApplication())
+            repository.updatePrivacySettings(
+                id = user.id,
+                profileVisibility = visibility.id,
+                messagePrivacy = messagePrivacy.id,
+                showBookmarksPublic = showBookmarks,
+            )
+        }
     }
 
     val currentUser = repository.observeCurrentUser()

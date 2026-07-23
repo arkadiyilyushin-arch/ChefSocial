@@ -58,6 +58,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_7_8,
                         MIGRATION_8_9,
                     )
+                    // If a legacy install has an incompatible schema, recreate the DB instead of crashing.
+                    .fallbackToDestructiveMigration()
                     .build()
                     .also { instance = it }
             }

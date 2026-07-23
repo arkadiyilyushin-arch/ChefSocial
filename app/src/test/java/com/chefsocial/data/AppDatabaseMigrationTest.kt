@@ -6,6 +6,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -26,12 +28,14 @@ class AppDatabaseMigrationTest {
     fun migrations_upgradeLegacySchemaToCurrent() {
         createVersionOneDatabase()
 
-        Room.databaseBuilder(context, AppDatabase::class.java, dbName)
+        val database = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
             .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4, AppDatabase.MIGRATION_4_5, AppDatabase.MIGRATION_5_6, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9)
             .build()
-            .openHelper
-            .writableDatabase
-            .use { db ->
+        runBlocking {
+            database.chefDao().count()
+            database.forumPostDao().observeAllReplyCounts().first()
+        }
+        database.openHelper.writableDatabase.use { db ->
                 assertTrue(db.hasColumn("recipes", "category"))
                 assertTrue(db.hasColumn("recipes", "uuid"))
                 assertTrue(db.hasColumn("chefs", "uuid"))
@@ -53,6 +57,7 @@ class AppDatabaseMigrationTest {
                 assertTrue(db.hasColumn("chefs", "showBookmarksPublic"))
                 assertTrue(db.hasColumn("chefs", "highlightRecipeIds"))
             }
+        database.close()
     }
 
     private fun createVersionOneDatabase() {
