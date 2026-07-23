@@ -529,6 +529,12 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
         return true
     }
 
+    fun canResetPassword(email: String): Boolean =
+        com.chefsocial.util.canResetPassword(getApplication(), email)
+
+    fun resetPassword(email: String, newPassword: String): Boolean =
+        com.chefsocial.util.resetPassword(getApplication(), email, newPassword)
+
     fun logout() {
         setLoggedIn(getApplication(), false)
         _isLoggedIn.value = false

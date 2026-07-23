@@ -3,6 +3,7 @@ package com.chefsocial
 import android.Manifest
 import android.os.Build
 import android.os.Bundle
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -21,6 +22,7 @@ import com.chefsocial.ui.viewmodel.ChefViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         scheduleBackgroundSync(applicationContext)

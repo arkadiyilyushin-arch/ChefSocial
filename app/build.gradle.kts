@@ -14,8 +14,8 @@ android {
         applicationId = "com.chefsocial"
         minSdk = 26
         targetSdk = 36
-        versionCode = 24
-        versionName = "1.6.9"
+        versionCode = 25
+        versionName = "1.7.0"
         buildConfigField("String", "DEFAULT_SERVER_URL", "\"https://api.chefsocial.local/\"")
     }
 
@@ -77,6 +77,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)

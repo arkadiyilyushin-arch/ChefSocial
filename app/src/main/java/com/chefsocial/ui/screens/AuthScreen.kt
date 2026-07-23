@@ -18,8 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -28,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -62,6 +62,7 @@ fun AuthScreen(
     onLogin: (email: String, password: String) -> Boolean,
     onRegister: (email: String, password: String) -> Boolean,
     onAuthenticated: () -> Unit,
+    onForgotPassword: () -> Unit,
 ) {
     val strings = LocalAppStrings.current
     var selectedTab by rememberSaveable { mutableIntStateOf(AuthTab.LOGIN.ordinal) }
@@ -69,6 +70,7 @@ fun AuthScreen(
     var password by rememberSaveable { mutableStateOf("") }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
     var errorMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
     CheflyBackground {
@@ -86,7 +88,7 @@ fun AuthScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Restaurant,
-                    contentDescription = null,
+                    contentDescription = strings.appTitle,
                     tint = CheflyBrown,
                     modifier = Modifier.size(36.dp),
                 )
@@ -127,31 +129,36 @@ fun AuthScreen(
                         },
                     )
 
-                    CheflyTextField(
+                    AuthTextField(
                         value = email,
                         onValueChange = {
                             email = it
                             errorMessage = null
                         },
                         label = strings.authEmail,
+                        placeholder = strings.authEmailHint,
                         leadingIcon = Icons.Default.Email,
                     )
 
-                    CheflyTextField(
+                    AuthTextField(
                         value = password,
                         onValueChange = {
                             password = it
                             errorMessage = null
                         },
                         label = strings.authPassword,
+                        placeholder = strings.authPasswordHint,
+                        supportingText = strings.authPasswordHint,
                         leadingIcon = Icons.Default.Lock,
                         isPassword = true,
                         passwordVisible = passwordVisible,
                         onTogglePassword = { passwordVisible = !passwordVisible },
+                        showPasswordLabel = strings.showPassword,
+                        hidePasswordLabel = strings.hidePassword,
                     )
 
                     if (selectedTab == AuthTab.REGISTER.ordinal) {
-                        CheflyTextField(
+                        AuthTextField(
                             value = confirmPassword,
                             onValueChange = {
                                 confirmPassword = it
@@ -160,8 +167,10 @@ fun AuthScreen(
                             label = strings.authConfirmPassword,
                             leadingIcon = Icons.Default.Lock,
                             isPassword = true,
-                            passwordVisible = passwordVisible,
-                            onTogglePassword = { passwordVisible = !passwordVisible },
+                            passwordVisible = confirmPasswordVisible,
+                            onTogglePassword = { confirmPasswordVisible = !confirmPasswordVisible },
+                            showPasswordLabel = strings.showPassword,
+                            hidePasswordLabel = strings.hidePassword,
                         )
                     } else {
                         Text(
@@ -169,16 +178,17 @@ fun AuthScreen(
                             color = CheflyLink,
                             modifier = Modifier
                                 .align(Alignment.End)
-                                .clickable { errorMessage = strings.authForgotPasswordHint },
-                            fontSize = 14.sp,
+                                .clickable(onClick = onForgotPassword),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
                         )
                     }
 
                     errorMessage?.let { message ->
                         Text(
-                            text = "⚠️ $message",
+                            text = message,
                             color = CheflyError,
-                            fontSize = 14.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -286,20 +296,32 @@ private fun AuthTabChip(
 }
 
 @Composable
-private fun CheflyTextField(
+private fun AuthTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    leadingIcon: ImageVector,
+    placeholder: String = "",
+    supportingText: String? = null,
     isPassword: Boolean = false,
     passwordVisible: Boolean = false,
     onTogglePassword: (() -> Unit)? = null,
+    showPasswordLabel: String = "",
+    hidePasswordLabel: String = "",
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = Modifier.fillMaxWidth(),
-        label = { Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+        label = { Text(label) },
+        placeholder = if (placeholder.isNotBlank()) {
+            { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)) }
+        } else {
+            null
+        },
+        supportingText = supportingText?.let { hint ->
+            { Text(hint, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        },
         leadingIcon = {
             Icon(
                 leadingIcon,
@@ -311,8 +333,9 @@ private fun CheflyTextField(
             {
                 IconButton(onClick = onTogglePassword) {
                     Icon(
-                        imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                        contentDescription = null,
+                        imageVector = if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                        contentDescription = if (passwordVisible) hidePasswordLabel else showPasswordLabel,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }

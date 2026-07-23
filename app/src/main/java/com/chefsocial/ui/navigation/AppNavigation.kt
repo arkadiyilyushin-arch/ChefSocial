@@ -26,6 +26,7 @@ import com.chefsocial.ui.screens.NewsScreen
 import com.chefsocial.ui.screens.OnboardingScreen
 import com.chefsocial.ui.screens.FollowListScreen
 import com.chefsocial.ui.screens.FollowListType
+import com.chefsocial.ui.screens.ForgotPasswordScreen
 import com.chefsocial.ui.screens.ProfileEditScreen
 import com.chefsocial.ui.screens.ProfileScreen
 import com.chefsocial.ui.screens.PrivacyPolicyScreen
@@ -38,6 +39,7 @@ import com.chefsocial.ui.viewmodel.ChefViewModel
 
 object Routes {
     const val AUTH = "auth"
+    const val FORGOT_PASSWORD = "forgot_password"
     const val ONBOARDING = "onboarding"
     const val WELCOME_ACTIONS = "welcome_actions"
     const val FEED = "feed"
@@ -112,6 +114,13 @@ fun AppNavigation(viewModel: ChefViewModel) {
                         popUpTo(Routes.AUTH) { inclusive = true }
                     }
                 },
+                onForgotPassword = { navController.navigate(Routes.FORGOT_PASSWORD) },
+            )
+        }
+        composable(Routes.FORGOT_PASSWORD) {
+            ForgotPasswordScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
             )
         }
         composable(Routes.ONBOARDING) {

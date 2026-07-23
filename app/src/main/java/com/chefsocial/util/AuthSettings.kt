@@ -58,6 +58,20 @@ fun clearAuthCredentials(context: Context) {
         .apply()
 }
 
+fun canResetPassword(context: Context, email: String): Boolean {
+    val stored = getStoredAuthEmail(context)
+    return stored.isNotBlank() && email.trim().equals(stored, ignoreCase = true)
+}
+
+fun resetPassword(context: Context, email: String, newPassword: String): Boolean {
+    if (!canResetPassword(context, email) || newPassword.length < 6) return false
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .edit()
+        .putString(KEY_AUTH_PASSWORD, newPassword)
+        .apply()
+    return true
+}
+
 fun hasRegisteredAccount(context: Context): Boolean =
     getStoredAuthEmail(context).isNotBlank()
 
