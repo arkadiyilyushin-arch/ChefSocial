@@ -1,30 +1,18 @@
 package com.chefsocial.ui.screens
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import com.chefsocial.ui.components.CheflyScaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -34,26 +22,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.chefsocial.data.NewsPostEntity
 import com.chefsocial.model.NewsType
 import com.chefsocial.ui.components.ChefBottomBar
-import com.chefsocial.ui.components.RecipeImage
+import com.chefsocial.ui.components.CheflyScaffold
+import com.chefsocial.ui.components.NewsCard
+import com.chefsocial.ui.components.NewsTypeFilters
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.ui.theme.cheflyPrimaryTopBarColors
-import com.chefsocial.ui.theme.cheflyBadgeNewColors
-import com.chefsocial.ui.theme.cheflyBadgePinnedColors
-import com.chefsocial.ui.theme.cheflyCardColors
 import com.chefsocial.ui.theme.CheflyTerracotta
+import com.chefsocial.ui.theme.cheflyPrimaryTopBarColors
 import com.chefsocial.ui.viewmodel.ChefViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,6 +51,12 @@ fun NewsScreen(
     } else {
         news.filter { it.type == selectedType }
     }
+    val pinnedPost = filtered.firstOrNull { it.isPinned }
+    val regularPosts = if (pinnedPost != null) {
+        filtered.filter { it.id != pinnedPost.id }
+    } else {
+        filtered
+    }
 
     CheflyScaffold(
         topBar = {
@@ -82,7 +67,7 @@ fun NewsScreen(
                         Text(
                             strings.newsSubtitle,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.92f),
                         )
                     }
                 },
@@ -107,21 +92,10 @@ fun NewsScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                NewsType.entries.forEach { type ->
-                    FilterChip(
-                        selected = selectedType == type.id,
-                        onClick = { selectedType = type.id },
-                        label = { Text(strings.newsTypeLabel(type)) },
-                    )
-                }
-            }
+            NewsTypeFilters(
+                selectedTypeId = selectedType,
+                onTypeSelected = { selectedType = it },
+            )
 
             if (filtered.isEmpty()) {
                 EmptyState(
@@ -134,118 +108,20 @@ fun NewsScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(filtered, key = { it.id }) { post ->
+                    pinnedPost?.let { pinned ->
+                        item(key = "pinned-${pinned.id}") {
+                            NewsCard(
+                                post = pinned,
+                                onClick = { onNewsClick(pinned.id) },
+                                large = true,
+                            )
+                        }
+                    }
+                    items(regularPosts, key = { it.id }) { post ->
                         NewsCard(post = post, onClick = { onNewsClick(post.id) })
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun NewsCard(
-    post: NewsPostEntity,
-    onClick: () -> Unit,
-) {
-    val strings = LocalAppStrings.current
-    val date = SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(Date(post.publishedAt))
-    val type = NewsType.fromId(post.type)
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        colors = cheflyCardColors(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
-            if (post.imageUrl.isNotBlank()) {
-                RecipeImage(
-                    model = post.imageUrl,
-                    contentDescription = post.title,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
-                    contentScale = ContentScale.Crop,
-                )
-            }
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                NewsBadges(
-                    isPinned = post.isPinned,
-                    isNew = post.isNew,
-                    typeLabel = strings.newsTypeLabel(type),
-                )
-                Text(
-                    text = post.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                if (post.summary.isNotBlank()) {
-                    Text(
-                        text = post.summary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                Text(
-                    text = "${strings.newsBy}: ${post.authorName} · $date",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-internal fun NewsBadges(
-    isPinned: Boolean,
-    isNew: Boolean,
-    typeLabel: String,
-) {
-    val strings = LocalAppStrings.current
-    val (newBg, newFg) = cheflyBadgeNewColors()
-    val (pinnedBg, pinnedFg) = cheflyBadgePinnedColors()
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        NewsBadge(
-            text = typeLabel,
-            color = MaterialTheme.colorScheme.primaryContainer,
-            textColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        )
-        if (isNew) {
-            NewsBadge(text = strings.newsNew, color = newBg, textColor = newFg)
-        }
-        if (isPinned) {
-            NewsBadge(text = "📌 ${strings.newsPinned}", color = pinnedBg, textColor = pinnedFg)
-        }
-    }
-}
-
-@Composable
-private fun NewsBadge(
-    text: String,
-    color: Color,
-    textColor: Color,
-) {
-    Surface(
-        color = color,
-        shape = RoundedCornerShape(8.dp),
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = textColor,
-        )
     }
 }

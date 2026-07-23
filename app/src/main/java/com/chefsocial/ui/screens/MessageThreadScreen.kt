@@ -3,7 +3,6 @@ package com.chefsocial.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,16 +10,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import com.chefsocial.ui.components.CheflyTopBarWithBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -30,19 +26,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.chefsocial.data.MessageWithSender
+import com.chefsocial.ui.components.ChatMessageBubble
+import com.chefsocial.ui.components.CheflyScaffold
+import com.chefsocial.ui.components.CheflyTopBarWithBack
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.ui.theme.cheflyMessageBubbleMineColor
-import com.chefsocial.ui.theme.cheflyMessageBubbleOtherColor
-import com.chefsocial.ui.theme.cheflyMessageTextMineColor
-import com.chefsocial.ui.theme.CheflySpacing
 import com.chefsocial.ui.viewmodel.ChefViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,47 +104,17 @@ fun MessageThreadScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 12.dp),
+                .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             reverseLayout = true,
         ) {
             items(messages.reversed(), key = { it.message.id }) { item ->
-                MessageBubble(
+                ChatMessageBubble(
                     item = item,
                     isMine = item.message.senderId == currentUser?.id,
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun MessageBubble(
-    item: MessageWithSender,
-    isMine: Boolean,
-) {
-    val time = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(item.message.createdAt))
-    val alignment = if (isMine) Alignment.End else Alignment.Start
-    val bg = if (isMine) cheflyMessageBubbleMineColor() else cheflyMessageBubbleOtherColor()
-    val textColor = if (isMine) cheflyMessageTextMineColor() else MaterialTheme.colorScheme.onSurface
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = alignment,
-    ) {
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(CheflySpacing.lg))
-                .background(bg)
-                .padding(horizontal = CheflySpacing.md, vertical = CheflySpacing.sm),
-        ) {
-            Text(item.message.text, color = textColor, style = MaterialTheme.typography.bodyMedium)
-        }
-        Text(
-            text = if (isMine) time else "${item.sender.name} · $time",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 2.dp, start = 4.dp, end = 4.dp),
-        )
     }
 }

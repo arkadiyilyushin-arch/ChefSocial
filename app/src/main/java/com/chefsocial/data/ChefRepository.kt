@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 
 class ChefRepository(private val db: AppDatabase) {
     private val chefDao = db.chefDao()
@@ -114,6 +115,11 @@ class ChefRepository(private val db: AppDatabase) {
         messageDao.observeByConversation(conversationId)
 
     fun observeForumThreads(): Flow<List<ForumThreadWithAuthor>> = forumThreadDao.observeAll()
+
+    fun observeForumReplyCounts(): Flow<Map<Long, Int>> =
+        forumPostDao.observeAllReplyCounts().map { counts ->
+            counts.associate { it.threadId to it.replyCount }
+        }
 
     fun observeForumThread(id: Long): Flow<ForumThreadWithAuthor?> = forumThreadDao.observeById(id)
 

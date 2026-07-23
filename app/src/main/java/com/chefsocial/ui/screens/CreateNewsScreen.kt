@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import com.chefsocial.ui.components.CheflyBackButton
-import com.chefsocial.ui.theme.cheflySurfaceTopBarColors
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Button
@@ -25,14 +23,13 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -43,8 +40,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.chefsocial.model.NewsType
+import com.chefsocial.ui.components.CheflyBackButton
+import com.chefsocial.ui.components.CheflyScaffold
+import com.chefsocial.ui.components.NewsPreviewCard
 import com.chefsocial.ui.components.RecipeImage
 import com.chefsocial.ui.localization.LocalAppStrings
+import com.chefsocial.ui.theme.cheflySurfaceTopBarColors
+import com.chefsocial.ui.theme.cheflyTextFieldColors
 import com.chefsocial.ui.viewmodel.ChefViewModel
 import com.chefsocial.util.createCameraPhotoUri
 import com.chefsocial.util.persistRecipePhoto
@@ -58,6 +60,7 @@ fun CreateNewsScreen(
 ) {
     val strings = LocalAppStrings.current
     val context = LocalContext.current
+    val currentUser by viewModel.currentUser.collectAsState()
     var title by rememberSaveable { mutableStateOf("") }
     var summary by rememberSaveable { mutableStateOf("") }
     var body by rememberSaveable { mutableStateOf("") }
@@ -117,6 +120,7 @@ fun CreateNewsScreen(
     }
 
     val canPublish = title.isNotBlank() && body.isNotBlank() && imageUrl.isNotBlank()
+    val authorName = currentUser?.name ?: "Admin"
 
     CheflyScaffold(
         topBar = {
@@ -135,6 +139,19 @@ fun CreateNewsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            if (title.isNotBlank() || body.isNotBlank() || imageUrl.isNotBlank()) {
+                NewsPreviewCard(
+                    title = title,
+                    summary = summary,
+                    body = body,
+                    imageUrl = imageUrl,
+                    authorName = authorName,
+                    isPinned = isPinned,
+                    isNew = isNew,
+                    typeId = newsType,
+                )
+            }
+
             Text(strings.newsPhoto, style = MaterialTheme.typography.titleSmall)
             if (imageUrl.isNotBlank()) {
                 RecipeImage(
@@ -165,6 +182,7 @@ fun CreateNewsScreen(
                 label = { Text(strings.title) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                colors = cheflyTextFieldColors(),
             )
             OutlinedTextField(
                 value = summary,
@@ -172,6 +190,7 @@ fun CreateNewsScreen(
                 label = { Text(strings.newsSummary) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2,
+                colors = cheflyTextFieldColors(),
             )
             OutlinedTextField(
                 value = body,
@@ -179,6 +198,7 @@ fun CreateNewsScreen(
                 label = { Text(strings.newsBody) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 6,
+                colors = cheflyTextFieldColors(),
             )
 
             Text(strings.newsType, style = MaterialTheme.typography.titleSmall)

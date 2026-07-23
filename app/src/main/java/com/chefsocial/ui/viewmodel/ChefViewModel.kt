@@ -241,6 +241,9 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     val forumThreads = repository.observeForumThreads()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val forumReplyCounts = repository.observeForumReplyCounts()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     val conversations = currentUser.flatMapLatest { user ->
         if (user == null) kotlinx.coroutines.flow.flowOf(emptyList())
         else repository.observeConversations(user.id)

@@ -1,5 +1,6 @@
 package com.chefsocial.ui.screens
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +22,7 @@ fun MessagesScreen(
     currentRoute: String,
     onSelectTab: (String) -> Unit,
     onConversationClick: (Long) -> Unit,
+    onFindChefInFeed: () -> Unit,
 ) {
     val strings = LocalAppStrings.current
 
@@ -28,7 +30,14 @@ fun MessagesScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(strings.messages, style = MaterialTheme.typography.headlineMedium)
+                    Column {
+                        Text(strings.messages, style = MaterialTheme.typography.headlineMedium)
+                        Text(
+                            strings.messagesSubtitle,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.92f),
+                        )
+                    }
                 },
                 colors = cheflyPrimaryTopBarColors(),
             )
@@ -38,6 +47,7 @@ fun MessagesScreen(
         MessagesList(
             viewModel = viewModel,
             onConversationClick = onConversationClick,
+            onFindChefInFeed = onFindChefInFeed,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),

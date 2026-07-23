@@ -1,5 +1,6 @@
 package com.chefsocial.ui.screens
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,6 +23,7 @@ fun ForumScreen(
     onSelectTab: (String) -> Unit,
     onForumThreadClick: (Long) -> Unit,
     onCreateThread: () -> Unit,
+    onFindChefInFeed: () -> Unit,
 ) {
     val strings = LocalAppStrings.current
 
@@ -29,7 +31,14 @@ fun ForumScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(strings.forum, style = MaterialTheme.typography.headlineMedium)
+                    Column {
+                        Text(strings.forum, style = MaterialTheme.typography.headlineMedium)
+                        Text(
+                            strings.forumSubtitle,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.92f),
+                        )
+                    }
                 },
                 colors = cheflyPrimaryTopBarColors(),
             )
@@ -40,6 +49,7 @@ fun ForumScreen(
             viewModel = viewModel,
             onForumThreadClick = onForumThreadClick,
             onCreateThread = onCreateThread,
+            onFindChefInFeed = onFindChefInFeed,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),

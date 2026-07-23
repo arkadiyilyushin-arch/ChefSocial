@@ -181,6 +181,7 @@ fun AppNavigation(viewModel: ChefViewModel) {
                 currentRoute = Routes.MESSAGES,
                 onSelectTab = selectTab,
                 onConversationClick = { id -> navController.navigate(Routes.messageThread(id)) },
+                onFindChefInFeed = { navController.navigateTab(Routes.FEED) },
             )
         }
         composable(Routes.FORUM) {
@@ -190,6 +191,7 @@ fun AppNavigation(viewModel: ChefViewModel) {
                 onSelectTab = selectTab,
                 onForumThreadClick = { id -> navController.navigate(Routes.forumThread(id)) },
                 onCreateThread = { navController.navigate(Routes.CREATE_FORUM_THREAD) },
+                onFindChefInFeed = { navController.navigateTab(Routes.FEED) },
             )
         }
         composable(Routes.SEARCH) {

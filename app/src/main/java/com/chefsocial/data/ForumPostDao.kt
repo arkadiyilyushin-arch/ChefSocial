@@ -7,6 +7,11 @@ import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
+data class ThreadReplyCount(
+    val threadId: Long,
+    val replyCount: Int,
+)
+
 @Dao
 interface ForumPostDao {
     @Transaction
@@ -15,6 +20,9 @@ interface ForumPostDao {
 
     @Query("SELECT COUNT(*) FROM forum_posts WHERE threadId = :threadId")
     fun observeReplyCount(threadId: Long): Flow<Int>
+
+    @Query("SELECT threadId, COUNT(*) as replyCount FROM forum_posts GROUP BY threadId")
+    fun observeAllReplyCounts(): Flow<List<ThreadReplyCount>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(post: ForumPostEntity): Long
