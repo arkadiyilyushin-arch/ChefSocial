@@ -162,6 +162,8 @@ fun AppNavigation(viewModel: ChefViewModel) {
                 onLeaderboard = { navController.navigate(Routes.LEADERBOARD) },
                 onSearch = { navController.navigate(Routes.SEARCH) },
                 onCreateRecipe = { navController.navigate(Routes.CREATE) },
+                onDiscoverChefs = { navController.navigate(Routes.LEADERBOARD) },
+                onYourStory = { navController.navigate(Routes.PROFILE) },
             )
         }
         composable(Routes.NEWS) {

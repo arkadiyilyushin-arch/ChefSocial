@@ -134,6 +134,9 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     private val _isSyncing = MutableStateFlow(false)
     val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
 
+    private val _isFeedRefreshing = MutableStateFlow(false)
+    val isFeedRefreshing: StateFlow<Boolean> = _isFeedRefreshing.asStateFlow()
+
     private val _feedCategory = MutableStateFlow(getDefaultFeedCategory(application))
     val feedCategory: StateFlow<RecipeCategory> = _feedCategory.asStateFlow()
 
@@ -553,6 +556,15 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun clearSyncMessage() { _syncMessage.value = null }
+
+    fun refreshFeed(strings: AppStrings) {
+        viewModelScope.launch {
+            _isFeedRefreshing.value = true
+            syncWithServer(strings)
+            kotlinx.coroutines.delay(700)
+            _isFeedRefreshing.value = false
+        }
+    }
 
     fun syncWithServer(strings: AppStrings) {
         viewModelScope.launch {
