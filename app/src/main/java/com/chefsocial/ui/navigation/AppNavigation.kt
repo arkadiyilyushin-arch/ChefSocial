@@ -358,9 +358,12 @@ fun AppNavigation(viewModel: ChefViewModel) {
                 onBack = { navController.popBackStack() },
                 onAuthorClick = { chefId -> navController.navigate(Routes.chef(chefId)) },
                 onMessage = { chefId ->
-                    viewModel.startConversationWith(chefId) { conversationId ->
-                        navController.navigate(Routes.messageThread(conversationId))
-                    }
+                    viewModel.startConversationWith(
+                        recipientId = chefId,
+                        onReady = { conversationId ->
+                            navController.navigate(Routes.messageThread(conversationId))
+                        },
+                    )
                 },
             )
         }

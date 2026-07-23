@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.chefsocial.data.MAX_PROFILE_HIGHLIGHTS
 import com.chefsocial.data.parseHighlightRecipeIds
+import com.chefsocial.data.toHighlightRecipeIds
 import com.chefsocial.data.toHighlightRecipeIdsString
 import com.chefsocial.ui.components.CheflyBackButton
 import com.chefsocial.ui.components.CheflyScaffold
@@ -78,7 +79,7 @@ fun ProfileEditScreen(
     var selectedHighlightIdsCsv by rememberSaveable { mutableStateOf(user.highlightRecipeIds) }
     var cameraUri by rememberSaveable { mutableStateOf<Uri?>(null) }
     val selectedHighlightIds = remember(selectedHighlightIdsCsv) {
-        selectedHighlightIdsCsv.parseHighlightRecipeIds()
+        selectedHighlightIdsCsv.toHighlightRecipeIds()
     }
 
     LaunchedEffect(user) {

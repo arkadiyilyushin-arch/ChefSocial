@@ -1,8 +1,10 @@
 package com.chefsocial.data
 
 fun ChefEntity.parseHighlightRecipeIds(): List<Long> =
-    highlightRecipeIds
-        .split(',')
+    highlightRecipeIds.toHighlightRecipeIds()
+
+fun String.toHighlightRecipeIds(): List<Long> =
+    split(',')
         .mapNotNull { it.trim().toLongOrNull() }
         .take(MAX_PROFILE_HIGHLIGHTS)
 
