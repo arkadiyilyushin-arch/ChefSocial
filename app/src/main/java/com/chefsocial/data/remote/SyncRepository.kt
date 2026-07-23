@@ -331,6 +331,10 @@ class SyncRepository(
         avatarUrl = avatarUrl,
         profileLink = profileLink,
         pinnedRecipeId = pinnedRecipeId,
+        profileVisibility = profileVisibility,
+        messagePrivacy = messagePrivacy,
+        showBookmarksPublic = showBookmarksPublic,
+        highlightRecipeIds = highlightRecipeIds,
         isCurrentUser = isCurrentUser,
     )
 
@@ -344,6 +348,10 @@ class SyncRepository(
         avatarUrl = avatarUrl,
         profileLink = profileLink,
         pinnedRecipeId = pinnedRecipeId,
+        profileVisibility = profileVisibility,
+        messagePrivacy = messagePrivacy,
+        showBookmarksPublic = showBookmarksPublic,
+        highlightRecipeIds = highlightRecipeIds,
         isCurrentUser = isCurrentUser,
     )
 

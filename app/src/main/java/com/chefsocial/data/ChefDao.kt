@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ChefDao {
     @Query("SELECT * FROM chefs WHERE isCurrentUser = 1 LIMIT 1")
+    suspend fun getCurrentUser(): ChefEntity?
+
+    @Query("SELECT * FROM chefs WHERE isCurrentUser = 1 LIMIT 1")
     fun observeCurrentUser(): Flow<ChefEntity?>
 
     @Query("SELECT * FROM chefs WHERE id = :id")
@@ -65,7 +68,8 @@ interface ChefDao {
         UPDATE chefs
         SET name = :name, bio = :bio, specialty = :specialty,
             avatarUrl = :avatarUrl, avatarEmoji = :avatarEmoji,
-            profileLink = :profileLink, pinnedRecipeId = :pinnedRecipeId
+            profileLink = :profileLink, pinnedRecipeId = :pinnedRecipeId,
+            highlightRecipeIds = :highlightRecipeIds
         WHERE id = :id
         """,
     )
@@ -78,6 +82,23 @@ interface ChefDao {
         avatarEmoji: String,
         profileLink: String,
         pinnedRecipeId: Long,
+        highlightRecipeIds: String,
+    )
+
+    @Query(
+        """
+        UPDATE chefs
+        SET profileVisibility = :profileVisibility,
+            messagePrivacy = :messagePrivacy,
+            showBookmarksPublic = :showBookmarksPublic
+        WHERE id = :id
+        """,
+    )
+    suspend fun updatePrivacySettings(
+        id: Long,
+        profileVisibility: String,
+        messagePrivacy: String,
+        showBookmarksPublic: Boolean,
     )
 
     @Query("UPDATE chefs SET pinnedRecipeId = :recipeId WHERE id = :id")

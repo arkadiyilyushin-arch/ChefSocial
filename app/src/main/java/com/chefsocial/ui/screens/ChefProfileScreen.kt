@@ -5,30 +5,32 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import com.chefsocial.ui.components.CheflyBackButton
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import com.chefsocial.ui.components.CheflyScaffold
-import com.chefsocial.ui.theme.cheflySurfaceTopBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.chefsocial.data.parseHighlightRecipeIds
+import com.chefsocial.ui.components.CheflyBackButton
+import com.chefsocial.ui.components.CheflyScaffold
 import com.chefsocial.ui.components.ProfileHeader
 import com.chefsocial.ui.components.ProfileRecipeGrid
 import com.chefsocial.ui.components.ProfileTabRow
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.util.shareProfile
+import com.chefsocial.ui.theme.cheflySurfaceTopBarColors
 import com.chefsocial.ui.viewmodel.ChefViewModel
+import com.chefsocial.util.shareProfile
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,9 +43,12 @@ fun ChefProfileScreen(
 ) {
     val strings = LocalAppStrings.current
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     val currentUser by viewModel.currentUser.collectAsState()
     val stats by viewModel.observeChefStats(chefId).collectAsState()
     val chefStats = stats ?: return
+    val chef = chefStats.chef
     val recipes by viewModel.observeRecipesByAuthor(chefId).collectAsState()
     val engagement by viewModel.observeRecipeEngagement(chefId).collectAsState()
     val isFollowing by viewModel
@@ -54,15 +59,21 @@ fun ChefProfileScreen(
     }
 
     val isOwnProfile = currentUser?.id == chefId
-    val canViewContent = isOwnProfile || viewModel.canViewChefProfile(chefId, isFollowing)
-    val showMessageButton = !isOwnProfile && currentUser != null
+    val canViewContent = isOwnProfile || viewModel.canViewChefProfile(chef, isFollowing)
+    val showMessageButton = !isOwnProfile &&
+        currentUser != null &&
+        viewModel.canMessageChef(chef, isFollowing)
 
-    val pinnedRecipe = remember(chefStats.chef.pinnedRecipeId, recipes) {
-        if (chefStats.chef.pinnedRecipeId > 0) {
-            recipes.find { it.recipe.id == chefStats.chef.pinnedRecipeId }
+    val pinnedRecipe = remember(chef.pinnedRecipeId, recipes) {
+        if (chef.pinnedRecipeId > 0) {
+            recipes.find { it.recipe.id == chef.pinnedRecipeId }
         } else {
             null
         }
+    }
+
+    val highlights = remember(chef.highlightRecipeIds, recipes) {
+        chef.parseHighlightRecipeIds().mapNotNull { id -> recipes.find { it.recipe.id == id } }
     }
 
     CheflyScaffold(
@@ -70,7 +81,7 @@ fun ChefProfileScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = chefStats.chef.username,
+                        text = chef.username,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -79,6 +90,7 @@ fun ChefProfileScreen(
                 colors = cheflySurfaceTopBarColors(),
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -90,6 +102,7 @@ fun ChefProfileScreen(
                     stats = chefStats,
                     leaderboardRank = leaderboardRank,
                     pinnedRecipe = pinnedRecipe,
+                    highlights = highlights,
                     isOwnProfile = isOwnProfile,
                     isFollowing = isFollowing,
                     canViewContent = canViewContent,
@@ -104,10 +117,19 @@ fun ChefProfileScreen(
                         }
                     },
                     onMessage = {
-                        viewModel.startConversationWith(chefId, onMessage)
+                        viewModel.startConversationWith(
+                            recipientId = chefId,
+                            onReady = onMessage,
+                            onBlocked = {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(strings.messagePrivacyBlocked)
+                                }
+                            },
+                        )
                     },
-                    onShare = { shareProfile(context, chefStats.chef) },
+                    onShare = { shareProfile(context, chef) },
                     onPinnedRecipeClick = onRecipeClick,
+                    onHighlightClick = onRecipeClick,
                 )
             }
             if (canViewContent) {

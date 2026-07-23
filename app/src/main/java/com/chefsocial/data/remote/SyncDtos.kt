@@ -28,6 +28,10 @@ data class ChefDto(
     val avatarUrl: String = "",
     val profileLink: String = "",
     val pinnedRecipeId: Long = 0,
+    val profileVisibility: String = "public",
+    val messagePrivacy: String = "everyone",
+    val showBookmarksPublic: Boolean = true,
+    val highlightRecipeIds: String = "",
     val isCurrentUser: Boolean = false,
 )
 

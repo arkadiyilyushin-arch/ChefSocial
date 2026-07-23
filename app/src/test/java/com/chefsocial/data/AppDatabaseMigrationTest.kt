@@ -27,7 +27,7 @@ class AppDatabaseMigrationTest {
         createVersionOneDatabase()
 
         Room.databaseBuilder(context, AppDatabase::class.java, dbName)
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4, AppDatabase.MIGRATION_4_5, AppDatabase.MIGRATION_5_6, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4, AppDatabase.MIGRATION_4_5, AppDatabase.MIGRATION_5_6, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9)
             .build()
             .openHelper
             .writableDatabase
@@ -48,6 +48,10 @@ class AppDatabaseMigrationTest {
                 assertTrue(db.hasColumn("news_posts", "type"))
                 assertTrue(db.hasColumn("chefs", "profileLink"))
                 assertTrue(db.hasColumn("chefs", "pinnedRecipeId"))
+                assertTrue(db.hasColumn("chefs", "profileVisibility"))
+                assertTrue(db.hasColumn("chefs", "messagePrivacy"))
+                assertTrue(db.hasColumn("chefs", "showBookmarksPublic"))
+                assertTrue(db.hasColumn("chefs", "highlightRecipeIds"))
             }
     }
 

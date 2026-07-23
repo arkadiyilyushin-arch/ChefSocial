@@ -23,6 +23,15 @@ interface FollowDao {
     )
     fun observeIsFollowing(followerId: Long, followingId: Long): Flow<Boolean>
 
+    @Query(
+        """
+        SELECT EXISTS(
+            SELECT 1 FROM follows WHERE followerId = :followerId AND followingId = :followingId
+        )
+        """,
+    )
+    suspend fun isFollowing(followerId: Long, followingId: Long): Boolean
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(follow: FollowEntity)
 

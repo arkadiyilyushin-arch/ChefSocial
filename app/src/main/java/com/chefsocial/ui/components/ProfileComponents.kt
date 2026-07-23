@@ -3,6 +3,8 @@ package com.chefsocial.ui.components
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,15 +18,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +47,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -67,6 +76,7 @@ fun ProfileHeader(
     stats: ChefWithStats,
     leaderboardRank: Int?,
     pinnedRecipe: RecipeWithAuthor?,
+    highlights: List<RecipeWithAuthor>,
     isOwnProfile: Boolean,
     isFollowing: Boolean,
     canViewContent: Boolean,
@@ -79,6 +89,7 @@ fun ProfileHeader(
     onMessage: (() -> Unit)?,
     onShare: () -> Unit,
     onPinnedRecipeClick: ((Long) -> Unit)?,
+    onHighlightClick: ((Long) -> Unit)? = null,
 ) {
     val strings = LocalAppStrings.current
     val chef = stats.chef
@@ -136,29 +147,23 @@ fun ProfileHeader(
         Text(
             text = "@${chef.username}",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f),
         )
 
         if (chef.specialty.isNotBlank()) {
             Text(
                 text = chef.specialty,
                 style = MaterialTheme.typography.bodySmall,
-                color = CheflyTerracotta,
-                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
             )
         }
 
         Text(
             text = strings.profileMiniStats(stats.recipeCount, stats.totalLikes),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
             modifier = Modifier.padding(top = 2.dp),
-        )
-
-        Text(
-            text = "♥ ${stats.totalLikes} ${strings.totalLikes}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         if (chef.bio.isNotBlank()) {
@@ -172,6 +177,14 @@ fun ProfileHeader(
 
         if (chef.profileLink.isNotBlank()) {
             ProfileLinkText(link = chef.profileLink)
+        }
+
+        if (canViewContent && highlights.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(10.dp))
+            ProfileHighlightsRow(
+                highlights = highlights,
+                onHighlightClick = { id -> onHighlightClick?.invoke(id) },
+            )
         }
 
         if (pinnedRecipe != null && canViewContent) {
@@ -197,24 +210,40 @@ fun ProfileHeader(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                OutlinedButton(
+                Button(
                     onClick = { onEditProfile?.invoke() },
                     modifier = Modifier.weight(1f),
-                    colors = cheflyOutlinedButtonColors(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
                 ) {
+                    Icon(
+                        Icons.Outlined.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
                     Text(
-                        strings.editProfile,
+                        strings.editProfileShort,
+                        modifier = Modifier.padding(start = 6.dp),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = { onSettings?.invoke() },
                     modifier = Modifier.weight(1f),
-                    colors = cheflyOutlinedButtonColors(),
+                    shape = RoundedCornerShape(12.dp),
                 ) {
+                    Icon(
+                        Icons.Outlined.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
                     Text(
                         strings.settings,
+                        modifier = Modifier.padding(start = 6.dp),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -224,9 +253,19 @@ fun ProfileHeader(
             OutlinedButton(
                 onClick = onShare,
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
                 colors = cheflyOutlinedButtonColors(),
             ) {
-                Text(strings.shareProfile)
+                Icon(
+                    Icons.Default.Share,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    strings.shareProfile,
+                    modifier = Modifier.padding(start = 6.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                )
             }
         } else {
             Row(
@@ -276,13 +315,13 @@ fun TopChefBadge(rank: Int) {
     val strings = LocalAppStrings.current
     Surface(
         shape = RoundedCornerShape(6.dp),
-        color = CheflyTerracotta.copy(alpha = 0.15f),
+        color = MaterialTheme.colorScheme.primaryContainer,
     ) {
         Text(
             text = strings.topChefBadge(rank),
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
             style = MaterialTheme.typography.labelSmall,
-            color = CheflyTerracotta,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             fontWeight = FontWeight.Bold,
         )
     }
@@ -295,7 +334,7 @@ private fun ProfileLinkText(link: String) {
     Text(
         text = display,
         style = MaterialTheme.typography.bodySmall.copy(
-            color = CheflyTerracotta,
+            color = MaterialTheme.colorScheme.primary,
             textDecoration = TextDecoration.Underline,
         ),
         modifier = Modifier
@@ -387,7 +426,7 @@ fun ProfileStat(
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
             textAlign = TextAlign.Center,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -500,13 +539,13 @@ fun ProfileEmptyState(
             Icon(
                 Icons.Default.GridOn,
                 contentDescription = null,
-                tint = CheflyTerracotta.copy(alpha = 0.5f),
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.65f),
                 modifier = Modifier.size(48.dp),
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = message,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f),
                 textAlign = TextAlign.Center,
             )
             if (actionLabel != null && onAction != null) {
@@ -596,6 +635,158 @@ fun RecipeGridCell(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileHighlightsRow(
+    highlights: List<RecipeWithAuthor>,
+    onHighlightClick: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        highlights.forEach { recipe ->
+            ProfileHighlightCircle(
+                label = recipe.recipe.title,
+                imageUrl = recipe.recipe.imageUrl,
+                emoji = recipe.author.avatarEmoji,
+                onClick = { onHighlightClick(recipe.recipe.id) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileHighlightCircle(
+    label: String,
+    imageUrl: String,
+    emoji: String,
+    onClick: () -> Unit,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .width(76.dp)
+            .clickable(onClick = onClick),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(68.dp)
+                .border(
+                    width = 2.5.dp,
+                    brush = Brush.linearGradient(
+                        listOf(CheflyTerracotta, MaterialTheme.colorScheme.primary),
+                    ),
+                    shape = CircleShape,
+                )
+                .padding(3.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (imageUrl.isNotBlank()) {
+                RecipeImage(
+                    model = imageUrl,
+                    contentDescription = label,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                )
+            } else {
+                ProfileAvatar(
+                    emoji = emoji,
+                    avatarUrl = "",
+                    size = 62,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+@Composable
+fun ProfileEditPreview(
+    name: String,
+    username: String,
+    specialty: String,
+    bio: String,
+    profileLink: String,
+    avatarEmoji: String,
+    avatarUrl: String,
+    modifier: Modifier = Modifier,
+) {
+    val strings = LocalAppStrings.current
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        tonalElevation = 2.dp,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = strings.profileEditPreview,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                ProfileAvatar(
+                    emoji = avatarEmoji,
+                    avatarUrl = avatarUrl,
+                    size = 72,
+                    showTerracottaRing = true,
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = name.ifBlank { strings.myProfile },
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = "@$username",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f),
+                    )
+                    if (specialty.isNotBlank()) {
+                        Text(
+                            text = specialty,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+            }
+            if (bio.isNotBlank()) {
+                Text(
+                    text = bio,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            if (profileLink.isNotBlank()) {
+                ProfileLinkText(link = profileLink)
             }
         }
     }

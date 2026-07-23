@@ -22,6 +22,8 @@ class ChefRepository(private val db: AppDatabase) {
 
     fun observeCurrentUser(): Flow<ChefEntity?> = chefDao.observeCurrentUser()
 
+    suspend fun getCurrentUser(): ChefEntity? = chefDao.getCurrentUser()
+
     fun observeFeed(
         category: RecipeCategory = RecipeCategory.ALL,
         sort: FeedSortMode = FeedSortMode.NEWEST,
@@ -90,6 +92,9 @@ class ChefRepository(private val db: AppDatabase) {
 
     fun observeIsFollowing(followerId: Long, followingId: Long): Flow<Boolean> =
         followDao.observeIsFollowing(followerId, followingId)
+
+    suspend fun isFollowing(followerId: Long, followingId: Long): Boolean =
+        followDao.isFollowing(followerId, followingId)
 
     fun searchRecipes(query: String): Flow<List<RecipeEntity>> = recipeDao.search(query)
 
@@ -175,6 +180,7 @@ class ChefRepository(private val db: AppDatabase) {
         avatarEmoji: String = "",
         profileLink: String = "",
         pinnedRecipeId: Long? = null,
+        highlightRecipeIds: String? = null,
     ) {
         val chef = chefDao.getById(id) ?: return
         chefDao.updateProfileFull(
@@ -186,6 +192,22 @@ class ChefRepository(private val db: AppDatabase) {
             avatarEmoji = avatarEmoji.ifBlank { chef.avatarEmoji },
             profileLink = profileLink.trim(),
             pinnedRecipeId = pinnedRecipeId ?: chef.pinnedRecipeId,
+            highlightRecipeIds = highlightRecipeIds ?: chef.highlightRecipeIds,
+        )
+    }
+
+    suspend fun updatePrivacySettings(
+        id: Long,
+        profileVisibility: String? = null,
+        messagePrivacy: String? = null,
+        showBookmarksPublic: Boolean? = null,
+    ) {
+        val chef = chefDao.getById(id) ?: return
+        chefDao.updatePrivacySettings(
+            id = id,
+            profileVisibility = profileVisibility ?: chef.profileVisibility,
+            messagePrivacy = messagePrivacy ?: chef.messagePrivacy,
+            showBookmarksPublic = showBookmarksPublic ?: chef.showBookmarksPublic,
         )
     }
 

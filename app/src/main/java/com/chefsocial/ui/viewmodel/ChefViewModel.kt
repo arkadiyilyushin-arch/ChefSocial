@@ -194,8 +194,24 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { repository.seedIfEmpty() }
+            withContext(Dispatchers.IO) {
+                repository.seedIfEmpty()
+                syncPrivacyPrefsToEntity()
+            }
         }
+    }
+
+    private suspend fun syncPrivacyPrefsToEntity() {
+        val user = repository.getCurrentUser() ?: return
+        val visibility = getProfileVisibility(getApplication())
+        val messagePrivacy = getMessagePrivacy(getApplication())
+        val showBookmarks = isShowBookmarksPublic(getApplication())
+        repository.updatePrivacySettings(
+            id = user.id,
+            profileVisibility = visibility.id,
+            messagePrivacy = messagePrivacy.id,
+            showBookmarksPublic = showBookmarks,
+        )
     }
 
     val currentUser = repository.observeCurrentUser()
@@ -318,21 +334,47 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
         return if (index >= 0) index + 1 else null
     }
 
-    fun startConversationWith(recipientId: Long, onReady: (Long) -> Unit) {
+    fun startConversationWith(
+        recipientId: Long,
+        onReady: (Long) -> Unit,
+        onBlocked: () -> Unit = {},
+    ) {
         viewModelScope.launch {
             val userId = currentUser.value?.id ?: return@launch
+            val recipient = repository.getChefById(recipientId) ?: return@launch
+            val isFollowing = repository.isFollowing(userId, recipientId)
+            if (!canMessageChef(recipient, isFollowing)) {
+                onBlocked()
+                return@launch
+            }
             val conversationId = repository.getOrCreateConversation(userId, recipientId)
             onReady(conversationId)
         }
     }
 
-    fun canViewChefProfile(chefId: Long, isFollowing: Boolean): Boolean {
-        val user = currentUser.value ?: return true
-        if (chefId != user.id) return true
-        return when (profileVisibility.value) {
+    fun canViewChefProfile(chef: ChefEntity, isFollowing: Boolean): Boolean {
+        val viewerId = currentUser.value?.id
+        if (viewerId == chef.id) return true
+        return when (ProfileVisibility.fromId(chef.profileVisibility)) {
             ProfileVisibility.PUBLIC -> true
             ProfileVisibility.FOLLOWERS_ONLY -> isFollowing
         }
+    }
+
+    fun canMessageChef(chef: ChefEntity, isFollowing: Boolean): Boolean {
+        val viewer = currentUser.value ?: return false
+        if (viewer.id == chef.id) return false
+        if (!canViewChefProfile(chef, isFollowing)) return false
+        return when (MessagePrivacy.fromId(chef.messagePrivacy)) {
+            MessagePrivacy.EVERYONE -> true
+            MessagePrivacy.FOLLOWERS_ONLY -> isFollowing
+        }
+    }
+
+    fun canViewChefBookmarks(chef: ChefEntity, isFollowing: Boolean): Boolean {
+        if (currentUser.value?.id == chef.id) return chef.showBookmarksPublic
+        if (!canViewChefProfile(chef, isFollowing)) return false
+        return chef.showBookmarksPublic
     }
 
     fun observeRecipeInteractions(
@@ -426,16 +468,31 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
     fun setProfileVisibilitySetting(visibility: ProfileVisibility) {
         setProfileVisibility(getApplication(), visibility)
         _profileVisibility.value = visibility
+        viewModelScope.launch {
+            currentUser.value?.let { user ->
+                repository.updatePrivacySettings(user.id, profileVisibility = visibility.id)
+            }
+        }
     }
 
     fun setMessagePrivacySetting(privacy: MessagePrivacy) {
         setMessagePrivacy(getApplication(), privacy)
         _messagePrivacy.value = privacy
+        viewModelScope.launch {
+            currentUser.value?.let { user ->
+                repository.updatePrivacySettings(user.id, messagePrivacy = privacy.id)
+            }
+        }
     }
 
     fun setShowBookmarksPublicSetting(show: Boolean) {
         setShowBookmarksPublic(getApplication(), show)
         _showBookmarksPublic.value = show
+        viewModelScope.launch {
+            currentUser.value?.let { user ->
+                repository.updatePrivacySettings(user.id, showBookmarksPublic = show)
+            }
+        }
     }
 
     fun getLastSyncTime(): Long = getLastSyncStats(getApplication()).first
@@ -666,6 +723,7 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
         avatarEmoji: String? = null,
         profileLink: String = "",
         pinnedRecipeId: Long? = null,
+        highlightRecipeIds: String? = null,
         onSuccess: () -> Unit = {},
     ) {
         viewModelScope.launch {
@@ -688,6 +746,7 @@ class ChefViewModel(application: Application) : AndroidViewModel(application) {
                 avatarEmoji = avatarEmoji ?: "",
                 profileLink = profileLink,
                 pinnedRecipeId = pinnedRecipeId,
+                highlightRecipeIds = highlightRecipeIds,
             )
             onSuccess()
         }

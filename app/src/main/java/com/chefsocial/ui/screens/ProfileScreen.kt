@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.chefsocial.data.parseHighlightRecipeIds
 import com.chefsocial.ui.components.ChefBottomBar
 import com.chefsocial.ui.components.ProfileHeader
 import com.chefsocial.ui.components.ProfileRecipeGrid
@@ -56,7 +57,7 @@ fun ProfileScreen(
     val likedRecipes by viewModel.observeLikedRecipes(user.id).collectAsState()
     val engagement by viewModel.observeRecipeEngagement(user.id).collectAsState()
     val profileTab by viewModel.profileTab.collectAsState()
-    val showBookmarksPublic by viewModel.showBookmarksPublic.collectAsState()
+    val showBookmarksPublic = user.showBookmarksPublic
     val leaderboardRank = remember(user.id, viewModel.leaderboard.collectAsState().value) {
         viewModel.getLeaderboardRank(user.id)
     }
@@ -67,6 +68,10 @@ fun ProfileScreen(
         } else {
             null
         }
+    }
+
+    val highlights = remember(user.highlightRecipeIds, recipes) {
+        user.parseHighlightRecipeIds().mapNotNull { id -> recipes.find { it.recipe.id == id } }
     }
 
     val activeTab = when {
@@ -120,6 +125,7 @@ fun ProfileScreen(
                     stats = chefStats,
                     leaderboardRank = leaderboardRank,
                     pinnedRecipe = pinnedRecipe,
+                    highlights = highlights,
                     isOwnProfile = true,
                     isFollowing = false,
                     canViewContent = true,
@@ -132,6 +138,7 @@ fun ProfileScreen(
                     onMessage = null,
                     onShare = { shareProfile(context, chefStats.chef) },
                     onPinnedRecipeClick = onRecipeClick,
+                    onHighlightClick = onRecipeClick,
                 )
             }
             item {

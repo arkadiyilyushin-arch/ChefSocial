@@ -76,7 +76,7 @@ fun cheflyGridPlaceholderColor(): Color = MaterialTheme.colorScheme.surfaceConta
 fun cheflyDividerColor(): Color = MaterialTheme.colorScheme.outlineVariant
 
 @Composable
-fun cheflyTabInactiveColor(): Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+fun cheflyTabInactiveColor(): Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f)
 
 @Composable
 fun cheflyImageOverlayColor(): Color = Color.Black.copy(alpha = 0.45f)

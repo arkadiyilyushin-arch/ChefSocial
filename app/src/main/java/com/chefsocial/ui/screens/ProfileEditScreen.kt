@@ -16,24 +16,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import com.chefsocial.ui.components.CheflyBackButton
-import com.chefsocial.ui.theme.cheflySurfaceTopBarColors
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -42,8 +39,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import com.chefsocial.data.MAX_PROFILE_HIGHLIGHTS
+import com.chefsocial.data.parseHighlightRecipeIds
+import com.chefsocial.data.toHighlightRecipeIdsString
+import com.chefsocial.ui.components.CheflyBackButton
+import com.chefsocial.ui.components.CheflyScaffold
 import com.chefsocial.ui.components.ProfileAvatar
+import com.chefsocial.ui.components.ProfileEditPreview
+import com.chefsocial.ui.components.ProfileHighlightsRow
 import com.chefsocial.ui.localization.LocalAppStrings
+import com.chefsocial.ui.theme.cheflySurfaceTopBarColors
+import com.chefsocial.ui.theme.cheflyTextFieldColors
 import com.chefsocial.ui.viewmodel.ChefViewModel
 import java.io.File
 
@@ -69,7 +75,11 @@ fun ProfileEditScreen(
     var avatarEmoji by rememberSaveable { mutableStateOf(user.avatarEmoji) }
     var profileLink by rememberSaveable { mutableStateOf(user.profileLink) }
     var pinnedRecipeId by rememberSaveable { mutableStateOf(user.pinnedRecipeId) }
+    var selectedHighlightIdsCsv by rememberSaveable { mutableStateOf(user.highlightRecipeIds) }
     var cameraUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+    val selectedHighlightIds = remember(selectedHighlightIdsCsv) {
+        selectedHighlightIdsCsv.parseHighlightRecipeIds()
+    }
 
     LaunchedEffect(user) {
         name = user.name
@@ -79,6 +89,11 @@ fun ProfileEditScreen(
         avatarEmoji = user.avatarEmoji
         profileLink = user.profileLink
         pinnedRecipeId = user.pinnedRecipeId
+        selectedHighlightIdsCsv = user.highlightRecipeIds
+    }
+
+    val previewHighlights = remember(selectedHighlightIds, myRecipes) {
+        selectedHighlightIds.mapNotNull { id -> myRecipes.find { it.recipe.id == id } }
     }
 
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -120,6 +135,23 @@ fun ProfileEditScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            ProfileEditPreview(
+                name = name,
+                username = user.username,
+                specialty = specialty,
+                bio = bio,
+                profileLink = profileLink,
+                avatarEmoji = avatarEmoji,
+                avatarUrl = avatarUrl,
+            )
+
+            if (previewHighlights.isNotEmpty()) {
+                ProfileHighlightsRow(
+                    highlights = previewHighlights,
+                    onHighlightClick = {},
+                )
+            }
+
             ProfileAvatar(emoji = avatarEmoji, avatarUrl = avatarUrl, size = 112)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { galleryLauncher.launch("image/*") }) {
@@ -151,6 +183,7 @@ fun ProfileEditScreen(
                 label = { Text(strings.title) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                colors = cheflyTextFieldColors(),
             )
             OutlinedTextField(
                 value = specialty,
@@ -158,6 +191,7 @@ fun ProfileEditScreen(
                 label = { Text(strings.category) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                colors = cheflyTextFieldColors(),
             )
             OutlinedTextField(
                 value = bio,
@@ -165,6 +199,7 @@ fun ProfileEditScreen(
                 label = { Text(strings.description) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 4,
+                colors = cheflyTextFieldColors(),
             )
             OutlinedTextField(
                 value = profileLink,
@@ -173,6 +208,7 @@ fun ProfileEditScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 placeholder = { Text("instagram.com/username") },
+                colors = cheflyTextFieldColors(),
             )
             if (myRecipes.isNotEmpty()) {
                 Text(strings.pinRecipe, style = MaterialTheme.typography.labelLarge)
@@ -196,6 +232,36 @@ fun ProfileEditScreen(
                     }
                 }
             }
+            if (myRecipes.isNotEmpty()) {
+                Text(strings.profileHighlights, style = MaterialTheme.typography.labelLarge)
+                Text(
+                    strings.profileHighlightsHint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    myRecipes.forEach { recipe ->
+                        val selected = selectedHighlightIds.contains(recipe.recipe.id)
+                        FilterChip(
+                            selected = selected,
+                            onClick = {
+                                val updated = when {
+                                    selected -> selectedHighlightIds - recipe.recipe.id
+                                    selectedHighlightIds.size >= MAX_PROFILE_HIGHLIGHTS -> selectedHighlightIds
+                                    else -> selectedHighlightIds + recipe.recipe.id
+                                }
+                                selectedHighlightIdsCsv = updated.toHighlightRecipeIdsString()
+                            },
+                            label = { Text(recipe.recipe.title, maxLines = 1) },
+                        )
+                    }
+                }
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = {
@@ -208,6 +274,7 @@ fun ProfileEditScreen(
                         avatarEmoji = avatarEmoji,
                         profileLink = profileLink,
                         pinnedRecipeId = pinnedRecipeId,
+                        highlightRecipeIds = selectedHighlightIdsCsv,
                         onSuccess = onSaved,
                     )
                 },

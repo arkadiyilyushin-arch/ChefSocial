@@ -1,5 +1,8 @@
 package com.chefsocial.data
 
+import com.chefsocial.model.MessagePrivacy
+import com.chefsocial.model.ProfileVisibility
+
 object DatabaseSeeder {
     suspend fun seedSocialIfEmpty(db: AppDatabase) {
         val chefDao = db.chefDao()
@@ -53,6 +56,8 @@ object DatabaseSeeder {
                 bio = "Нутрициолог и автор здоровых рецептов без лишних калорий.",
                 specialty = "Здоровое питание",
                 avatarEmoji = "🥗",
+                profileVisibility = ProfileVisibility.FOLLOWERS_ONLY.id,
+                messagePrivacy = MessagePrivacy.FOLLOWERS_ONLY.id,
             ),
         )
 
