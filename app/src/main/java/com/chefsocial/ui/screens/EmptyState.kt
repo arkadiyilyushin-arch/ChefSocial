@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import com.chefsocial.ui.theme.CheflySpacing
 
 @Composable
 fun EmptyState(
@@ -25,7 +25,7 @@ fun EmptyState(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(32.dp),
+            modifier = Modifier.padding(CheflySpacing.xxxl),
         )
     }
 }

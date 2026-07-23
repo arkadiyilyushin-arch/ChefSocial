@@ -15,12 +15,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import com.chefsocial.ui.components.CheflyScaffold
+import com.chefsocial.ui.theme.cheflyPrimaryTopBarColors
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -55,7 +55,7 @@ fun CommunicationScreen(
     val strings = LocalAppStrings.current
     val tab by viewModel.communicationTab.collectAsState()
 
-    Scaffold(
+    CheflyScaffold(
         topBar = {
             TopAppBar(
                 title = {
@@ -64,14 +64,11 @@ fun CommunicationScreen(
                         Text(
                             strings.communicationSubtitle,
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.85f),
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = Color.White,
-                ),
+                colors = cheflyPrimaryTopBarColors(),
             )
         },
         bottomBar = { ChefBottomBar(currentRoute = currentRoute, onSelect = onSelectTab) },

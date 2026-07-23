@@ -28,9 +28,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.chefsocial.ui.components.RecipeImage
 import com.chefsocial.data.RecipeWithAuthor
+import com.chefsocial.ui.theme.CheflySpacing
+import com.chefsocial.ui.theme.cheflyCardColors
+import com.chefsocial.ui.components.RecipeImage
 
 @Composable
 fun RecipeCard(
@@ -46,8 +49,8 @@ fun RecipeCard(
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = MaterialTheme.shapes.large,
+        colors = cheflyCardColors(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         RecipeImage(
@@ -58,7 +61,7 @@ fun RecipeCard(
                 .height(200.dp),
             contentScale = ContentScale.Crop,
         )
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(CheflySpacing.lg)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

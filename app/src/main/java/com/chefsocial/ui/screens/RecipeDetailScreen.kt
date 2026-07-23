@@ -26,7 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
+import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -85,7 +85,7 @@ fun RecipeDetailScreen(
         return
     }
 
-    Scaffold(
+    CheflyScaffold(
         topBar = {
             TopAppBar(
                 title = { Text(strings.recipeDetail) },

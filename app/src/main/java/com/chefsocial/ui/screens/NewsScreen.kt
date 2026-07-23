@@ -23,11 +23,10 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,6 +45,9 @@ import com.chefsocial.model.NewsType
 import com.chefsocial.ui.components.ChefBottomBar
 import com.chefsocial.ui.components.RecipeImage
 import com.chefsocial.ui.localization.LocalAppStrings
+import com.chefsocial.ui.theme.cheflyPrimaryTopBarColors
+import com.chefsocial.ui.theme.cheflyBadgeNewColors
+import com.chefsocial.ui.theme.cheflyBadgePinnedColors
 import com.chefsocial.ui.theme.cheflyCardColors
 import com.chefsocial.ui.theme.CheflyTerracotta
 import com.chefsocial.ui.viewmodel.ChefViewModel
@@ -71,7 +73,7 @@ fun NewsScreen(
         news.filter { it.type == selectedType }
     }
 
-    Scaffold(
+    CheflyScaffold(
         topBar = {
             TopAppBar(
                 title = {
@@ -80,14 +82,11 @@ fun NewsScreen(
                         Text(
                             strings.newsSubtitle,
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.85f),
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = Color.White,
-                ),
+                colors = cheflyPrimaryTopBarColors(),
             )
         },
         floatingActionButton = {
@@ -214,13 +213,19 @@ internal fun NewsBadges(
     typeLabel: String,
 ) {
     val strings = LocalAppStrings.current
+    val (newBg, newFg) = cheflyBadgeNewColors()
+    val (pinnedBg, pinnedFg) = cheflyBadgePinnedColors()
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        NewsBadge(text = typeLabel, color = CheflyTerracotta.copy(alpha = 0.15f), textColor = CheflyTerracotta)
+        NewsBadge(
+            text = typeLabel,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            textColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
         if (isNew) {
-            NewsBadge(text = strings.newsNew, color = Color(0xFFE8F5E9), textColor = Color(0xFF2E7D32))
+            NewsBadge(text = strings.newsNew, color = newBg, textColor = newFg)
         }
         if (isPinned) {
-            NewsBadge(text = "📌 ${strings.newsPinned}", color = Color(0xFFFFF3E0), textColor = CheflyTerracotta)
+            NewsBadge(text = "📌 ${strings.newsPinned}", color = pinnedBg, textColor = pinnedFg)
         }
     }
 }

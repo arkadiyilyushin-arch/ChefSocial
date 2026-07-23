@@ -16,7 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -48,7 +48,7 @@ fun NewsDetailScreen(
     val post by viewModel.observeNewsPost(newsId).collectAsState()
     val dateFormatter = SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.getDefault())
 
-    Scaffold(
+    CheflyScaffold(
         topBar = {
             TopAppBar(
                 title = { Text(strings.newsTitle) },

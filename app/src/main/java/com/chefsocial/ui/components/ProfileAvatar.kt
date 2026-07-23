@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.chefsocial.ui.theme.CheflyTerracotta
 
 @Composable
 fun ProfileAvatar(
@@ -28,7 +27,7 @@ fun ProfileAvatar(
 ) {
     val shape = CircleShape
     val ringModifier = if (showTerracottaRing) {
-        Modifier.border(2.5.dp, CheflyTerracotta, shape)
+        Modifier.border(2.5.dp, MaterialTheme.colorScheme.primary, shape)
     } else {
         Modifier
     }

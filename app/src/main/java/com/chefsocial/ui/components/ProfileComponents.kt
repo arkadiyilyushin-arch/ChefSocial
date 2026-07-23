@@ -52,8 +52,15 @@ import com.chefsocial.data.ChefWithStats
 import com.chefsocial.data.RecipeEngagement
 import com.chefsocial.data.RecipeWithAuthor
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.ui.theme.CheflyTerracotta
+import com.chefsocial.ui.theme.cheflyDividerColor
+import com.chefsocial.ui.theme.cheflyGridPlaceholderColor
+import com.chefsocial.ui.theme.cheflyImageOverlayColor
+import com.chefsocial.ui.theme.cheflyNavigationBarColors
+import com.chefsocial.ui.theme.cheflyOnImageColor
 import com.chefsocial.ui.theme.cheflyOutlinedButtonColors
+import com.chefsocial.ui.theme.cheflyTabInactiveColor
+import com.chefsocial.ui.theme.CheflySpacing
+import com.chefsocial.ui.theme.CheflyTerracotta
 
 @Composable
 fun ProfileHeader(
@@ -79,7 +86,7 @@ fun ProfileHeader(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = CheflySpacing.lg, vertical = CheflySpacing.md),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -320,7 +327,7 @@ fun PinnedRecipeCard(
             modifier = Modifier
                 .size(56.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFFF0EBE6)),
+                .background(cheflyGridPlaceholderColor()),
             contentAlignment = Alignment.Center,
         ) {
             if (recipe.recipe.imageUrl.isNotBlank()) {
@@ -417,7 +424,7 @@ fun ProfileTabRow(
                 )
             }
         },
-        divider = { HorizontalDivider(color = Color(0xFFE8E0DA)) },
+        divider = { HorizontalDivider(color = cheflyDividerColor()) },
     ) {
         tabs.forEach { (index, icon, label) ->
             Tab(
@@ -427,7 +434,7 @@ fun ProfileTabRow(
                     Icon(
                         icon,
                         contentDescription = label,
-                        tint = if (activeTab == index) CheflyTerracotta else Color(0xFFB0A8A2),
+                        tint = if (activeTab == index) CheflyTerracotta else cheflyTabInactiveColor(),
                     )
                 },
             )
@@ -525,7 +532,7 @@ fun RecipeGridCell(
     Box(
         modifier = modifier
             .aspectRatio(1f)
-            .background(Color(0xFFF0EBE6))
+            .background(cheflyGridPlaceholderColor())
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -548,7 +555,7 @@ fun RecipeGridCell(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.45f))
+                    .background(cheflyImageOverlayColor())
                     .padding(horizontal = 6.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -561,13 +568,13 @@ fun RecipeGridCell(
                         Icon(
                             Icons.Default.Favorite,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = cheflyOnImageColor(),
                             modifier = Modifier.size(12.dp),
                         )
                         Text(
                             text = likeCount.toString(),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White,
+                            color = cheflyOnImageColor(),
                         )
                     }
                 }
@@ -579,13 +586,13 @@ fun RecipeGridCell(
                         Icon(
                             Icons.Outlined.ChatBubbleOutline,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = cheflyOnImageColor(),
                             modifier = Modifier.size(12.dp),
                         )
                         Text(
                             text = commentCount.toString(),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White,
+                            color = cheflyOnImageColor(),
                         )
                     }
                 }

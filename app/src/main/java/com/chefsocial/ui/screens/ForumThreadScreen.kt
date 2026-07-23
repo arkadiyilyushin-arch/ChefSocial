@@ -19,7 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
+import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -54,7 +54,7 @@ fun ForumThreadScreen(
     val currentUser by viewModel.currentUser.collectAsState()
     var replyText by rememberSaveable { mutableStateOf("") }
 
-    Scaffold(
+    CheflyScaffold(
         topBar = {
             TopAppBar(
                 title = { Text(strings.forum) },

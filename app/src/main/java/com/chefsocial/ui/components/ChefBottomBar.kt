@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.chefsocial.ui.localization.LocalAppStrings
+import com.chefsocial.ui.theme.cheflyNavigationBarColors
 import com.chefsocial.ui.theme.CheflyTerracotta
 
 data class BottomNavItem(
@@ -47,13 +48,7 @@ fun ChefBottomBar(
                 onClick = { onSelect(item.route) },
                 icon = { Icon(item.icon, contentDescription = item.label()) },
                 label = { Text(item.label()) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = CheflyTerracotta,
-                    selectedTextColor = CheflyTerracotta,
-                    indicatorColor = Color(0xFFFFE8DF),
-                    unselectedIconColor = Color(0xFF9A8A82),
-                    unselectedTextColor = Color(0xFF9A8A82),
-                ),
+                colors = cheflyNavigationBarColors(),
             )
         }
     }

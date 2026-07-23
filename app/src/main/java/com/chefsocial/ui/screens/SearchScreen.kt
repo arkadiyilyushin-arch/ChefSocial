@@ -19,7 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
+import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -45,7 +45,7 @@ fun SearchScreen(
     val recipes by viewModel.searchRecipes.collectAsState()
     val chefs by viewModel.searchChefs.collectAsState()
 
-    Scaffold(
+    CheflyScaffold(
         topBar = { TopAppBar(title = { Text("Поиск") }) },
         bottomBar = { ChefBottomBar(currentRoute = currentRoute, onSelect = onSelectTab) },
     ) { padding ->

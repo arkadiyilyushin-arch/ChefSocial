@@ -19,7 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
+import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -35,8 +35,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.chefsocial.data.MessageWithSender
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.ui.theme.CheflyInput
-import com.chefsocial.ui.theme.CheflyTerracotta
+import com.chefsocial.ui.theme.cheflyMessageBubbleMineColor
+import com.chefsocial.ui.theme.cheflyMessageBubbleOtherColor
+import com.chefsocial.ui.theme.cheflyMessageTextMineColor
+import com.chefsocial.ui.theme.CheflySpacing
 import com.chefsocial.ui.viewmodel.ChefViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -60,7 +62,7 @@ fun MessageThreadScreen(
     } ?: 0L
     val otherChef by viewModel.observeChef(otherId).collectAsState()
 
-    Scaffold(
+    CheflyScaffold(
         topBar = {
             TopAppBar(
                 title = { Text(otherChef?.name ?: "…") },
@@ -128,8 +130,8 @@ private fun MessageBubble(
 ) {
     val time = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(item.message.createdAt))
     val alignment = if (isMine) Alignment.End else Alignment.Start
-    val bg = if (isMine) CheflyTerracotta else CheflyInput
-    val textColor = if (isMine) Color.White else MaterialTheme.colorScheme.onSurface
+    val bg = if (isMine) cheflyMessageBubbleMineColor() else cheflyMessageBubbleOtherColor()
+    val textColor = if (isMine) cheflyMessageTextMineColor() else MaterialTheme.colorScheme.onSurface
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -137,9 +139,9 @@ private fun MessageBubble(
     ) {
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(CheflySpacing.lg))
                 .background(bg)
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+                .padding(horizontal = CheflySpacing.md, vertical = CheflySpacing.sm),
         ) {
             Text(item.message.text, color = textColor, style = MaterialTheme.typography.bodyMedium)
         }

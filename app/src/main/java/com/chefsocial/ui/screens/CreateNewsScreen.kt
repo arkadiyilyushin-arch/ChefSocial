@@ -28,7 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
+import com.chefsocial.ui.components.CheflyScaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -95,7 +95,7 @@ fun CreateNewsScreen(
     }
 
     if (!viewModel.isAdmin) {
-        Scaffold(
+        CheflyScaffold(
             topBar = {
                 TopAppBar(
                     title = { Text(strings.createNews) },
@@ -120,7 +120,7 @@ fun CreateNewsScreen(
 
     val canPublish = title.isNotBlank() && body.isNotBlank() && imageUrl.isNotBlank()
 
-    Scaffold(
+    CheflyScaffold(
         topBar = {
             TopAppBar(
                 title = { Text(strings.createNews) },

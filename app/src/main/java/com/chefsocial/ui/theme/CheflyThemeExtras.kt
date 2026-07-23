@@ -3,9 +3,12 @@ package com.chefsocial.ui.theme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 
 @Composable
 fun cheflyCardColors() = CardDefaults.cardColors(
@@ -37,3 +40,69 @@ fun cheflyTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
     unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
 )
+
+@Composable
+fun cheflyPrimaryTopBarColors() = TopAppBarDefaults.topAppBarColors(
+    containerColor = MaterialTheme.colorScheme.primary,
+    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+    actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+)
+
+@Composable
+fun cheflySurfaceTopBarColors() = TopAppBarDefaults.topAppBarColors(
+    containerColor = MaterialTheme.colorScheme.background,
+    titleContentColor = MaterialTheme.colorScheme.onBackground,
+    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+    actionIconContentColor = MaterialTheme.colorScheme.onBackground,
+)
+
+@Composable
+fun cheflyNavigationBarColors() = NavigationBarItemDefaults.colors(
+    selectedIconColor = MaterialTheme.colorScheme.primary,
+    selectedTextColor = MaterialTheme.colorScheme.primary,
+    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+)
+
+@Composable
+fun cheflyGridPlaceholderColor(): Color = MaterialTheme.colorScheme.surfaceContainerHigh
+
+@Composable
+fun cheflyDividerColor(): Color = MaterialTheme.colorScheme.outlineVariant
+
+@Composable
+fun cheflyTabInactiveColor(): Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+
+@Composable
+fun cheflyImageOverlayColor(): Color = Color.Black.copy(alpha = 0.45f)
+
+@Composable
+fun cheflyOnImageColor(): Color = Color.White
+
+@Composable
+fun cheflyBadgeNewColors(): Pair<Color, Color> {
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    return if (dark) {
+        Color(0xFF1B3D24) to Color(0xFF81C784)
+    } else {
+        GreenContainer to Color(0xFF2E7D32)
+    }
+}
+
+@Composable
+fun cheflyBadgePinnedColors(): Pair<Color, Color> =
+    MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.primary
+
+@Composable
+fun cheflyMessageBubbleMineColor(): Color = MaterialTheme.colorScheme.primary
+
+@Composable
+fun cheflyMessageBubbleOtherColor(): Color = MaterialTheme.colorScheme.surfaceVariant
+
+@Composable
+fun cheflyMessageTextMineColor(): Color = MaterialTheme.colorScheme.onPrimary
+
+@Composable
+fun cheflyAccentBannerColor(): Color = MaterialTheme.colorScheme.primaryContainer

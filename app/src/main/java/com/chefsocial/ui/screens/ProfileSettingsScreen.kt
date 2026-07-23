@@ -25,7 +25,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
+import com.chefsocial.ui.components.CheflyScaffold
+import com.chefsocial.ui.theme.cheflyAccentBannerColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -52,7 +53,6 @@ import com.chefsocial.model.MessagePrivacy
 import com.chefsocial.model.ProfileVisibility
 import com.chefsocial.model.RecipeCategory
 import com.chefsocial.ui.localization.LocalAppStrings
-import com.chefsocial.ui.theme.CheflyTerracotta
 import com.chefsocial.ui.viewmodel.ChefViewModel
 import com.chefsocial.util.AppLanguage
 import java.text.SimpleDateFormat
@@ -120,7 +120,7 @@ fun ProfileSettingsScreen(
         }
     }
 
-    Scaffold(
+    CheflyScaffold(
         topBar = {
             TopAppBar(
                 title = {
@@ -151,7 +151,7 @@ fun ProfileSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             Surface(
-                color = CheflyTerracotta.copy(alpha = 0.12f),
+                color = cheflyAccentBannerColor(),
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -159,7 +159,7 @@ fun ProfileSettingsScreen(
                     text = "Chefly v${BuildConfig.VERSION_NAME} · ${strings.settingsAccount} · ${strings.settingsNotifications} · ${strings.settingsPrivacy}",
                     modifier = Modifier.padding(12.dp),
                     style = MaterialTheme.typography.bodySmall,
-                    color = CheflyTerracotta,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
 
