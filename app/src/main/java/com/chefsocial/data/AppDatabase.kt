@@ -50,6 +50,13 @@ abstract class AppDatabase : RoomDatabase() {
             get(context)
         }
 
+        fun resetAndRecreate(context: Context) {
+            synchronized(this) {
+                resetInstance()
+                deleteDatabaseFiles(context.applicationContext)
+            }
+        }
+
         fun get(context: Context): AppDatabase {
             instance?.let { return it }
             return synchronized(this) {
@@ -61,13 +68,13 @@ abstract class AppDatabase : RoomDatabase() {
         private fun openDatabase(context: Context): AppDatabase {
             return try {
                 buildDatabase(context)
-            } catch (first: Exception) {
+            } catch (first: Throwable) {
                 Log.e(LOG_TAG, "Database open failed, recreating", first)
                 resetInstance()
                 deleteDatabaseFiles(context)
                 try {
                     buildDatabase(context)
-                } catch (second: Exception) {
+                } catch (second: Throwable) {
                     Log.e(LOG_TAG, "Database recreate failed", second)
                     throw second
                 }
@@ -86,6 +93,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_7_8,
                     MIGRATION_8_9,
                 )
+                .allowMainThreadQueries()
                 .fallbackToDestructiveMigration()
                 .build()
 

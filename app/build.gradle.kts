@@ -8,14 +8,14 @@ plugins {
 
 android {
     namespace = "com.chefsocial"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.chefsocial"
         minSdk = 26
-        targetSdk = 36
-        versionCode = 31
-        versionName = "1.7.6"
+        targetSdk = 34
+        versionCode = 32
+        versionName = "1.7.7"
         buildConfigField("String", "DEFAULT_SERVER_URL", "\"https://api.chefsocial.local/\"")
     }
 
